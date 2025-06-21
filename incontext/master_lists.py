@@ -156,7 +156,7 @@ def view_master_item(master_list_id, master_item_id):
     requested_master_item = None
     for master_item in master_list['master_items']:
         if master_item['id'] == master_item_id:
-            requested_master_item = item
+            requested_master_item = master_item
     if not requested_master_item:
         abort(404)
     return render_template("master-lists/master-items/view.html", master_list=master_list, master_item=requested_master_item, master_details=master_list["master_details"])
@@ -197,7 +197,7 @@ def edit_master_item(master_list_id, master_item_id):
                 master_i_d_relations
             )
             db.commit()
-            return redirect(url_for('master_lists.view', master_id=master_id))
+            return redirect(url_for('master_lists.view', master_list_id=master_list_id))
     return render_template("master-lists/master-items/edit.html", master_list=master_list, master_item=requested_master_item)
 
 
@@ -243,7 +243,7 @@ def new_master_detail(master_list_id):
             )
             master_detail_id = cur.lastrowid
             cur.execute(
-                'INSERT INTO master_detail_relations (master_list_id, master_detail_id)'
+                'INSERT INTO master_list_detail_relations (master_list_id, master_detail_id)'
                 ' VALUES (?, ?)',
                 (master_list_id, master_detail_id)
             )
@@ -296,7 +296,7 @@ def delete_master_detail(master_list_id, master_detail_id):
     db = get_db()
     db.execute('DELETE FROM master_details WHERE id = ?', (master_detail_id,))
     db.execute('DELETE FROM master_item_detail_relations WHERE master_detail_id = ?', (master_detail_id,))
-    db.execute('DELETE FROM master_detail_relations WHERE master_detail_id = ?', (master_detail_id,))
+    db.execute('DELETE FROM master_list_detail_relations WHERE master_detail_id = ?', (master_detail_id,))
     db.commit()
     return redirect(url_for('master_lists.view', master_list_id=master_list_id))
 
@@ -306,7 +306,7 @@ def get_master_lists():
     master_lists = db.execute(
         'SELECT m.id, m.name, m.description, m.created'
         ' FROM master_lists m'
-        ' WHERE m.creator_id = ?'
+        ' WHERE m.creator_id = ?',
         (g.user['id'],)
     ).fetchall()
     return master_lists

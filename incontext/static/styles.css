@@ -62,9 +62,3 @@ fieldset div {
 	display: grid;
 	grid-template-columns: 2fr 4fr;
 }
-
-.masters-overview {
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	column-gap: 10px;
-}

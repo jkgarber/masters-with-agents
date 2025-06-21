@@ -1,24 +1,17 @@
 {% extends 'base.html' %}
 
 {% block header %}
-<h1>{% block title %}New {{ master_type|capitalize }} Master{% endblock %}</h1>
+<h1>{% block title %}Edit Master Agent: {{ master_agent['name'] }}{% endblock %}</h1>
+<p><b>Created:</b> {{ master_agent["created"].strftime("%d.%m.%Y") }}</p>
 {% endblock %}
-
+	
 {% block main %}
-{% if master_type == "list" %}
 <form method="post">
 	<label for="name">Name
-		<input name="name" id="name" value="{{ request.form['name'] }}" autofocus required>
+		<input id="name" name="name" value="{{ request.form['name'] or master_agent['name'] }}" autofocus required>
 	</label>
-	<label for="name">Description
-		<textarea name="description" id="description" value="{{ request.form['description'] }}"></textarea>
-	</label>
-	<input type="submit" value="Save">
-</form>
-{% elif master_type == "agent" %}
-<form method="post">
 	<label for="description">Description
-		<textarea name="description" id="description" required>{{ request.form['description'] }}</textarea>
+		<textarea id="description" name="description">{{ request.form['description'] or master_agent['description'] }}</textarea>
 	</label>
 	<label for="model">Model
 		<select name="model" id="model" required autofocus>
@@ -33,20 +26,20 @@
 			<option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
 		</select>
 	</label>
-	<label for="name">Name
-		<input name="name" id="name" value="{{ request.form['name'] }}" required>
-	</label>
 	<label for="role">Role
-		<input name="role" id="role" value="{{ request.form['role'] }}" required>
+		<input id="role" name="role" value="{{ request.form['role'] or master_agent['role'] }}" autofocus required>
 	</label>
 	<label for="instructions">Instructions
-		<textarea name="instructions" id="instructions" required>{{ request.form['instructions'] }}</textarea>
+		<textarea id="instructions" name="instructions" required>{{ request.form['instructions'] or master_agent['instructions'] }}</textarea>
 	</label>
 	<input type="submit" value="Save">
 </form>
+<hr>
+<form method="post" action="{{ url_for('master_agents.delete', master_agent_id=master_agent['id']) }}">
+	<input type="submit" value="Delete">
+</form>
 <script>
 	const opts = document.querySelectorAll('#model option');
-	opts.forEach((opt) => if (opt.value === {{ request.form['model'] }}) opt.selected = true;)
+	opts.forEach((opt) => { if (opt.value === "{{ request.form['model'] or master_agent['model'] }}") opt.selected = true;});
 </script>
-{% endif %}
 {% endblock %}

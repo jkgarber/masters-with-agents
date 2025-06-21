@@ -3,8 +3,8 @@ DROP TABLE IF EXISTS master_lists;
 DROP TABLE IF EXISTS master_items;
 DROP TABLE IF EXISTS master_details;
 DROP TABLE IF EXISTS master_item_detail_relations;
-DROP TABLE IF EXISTS master_item_relations;
-DROP TABLE IF EXISTS master_detail_relations;
+DROP TABLE IF EXISTS master_list_item_relations;
+DROP TABLE IF EXISTS master_list_detail_relations;
 DROP TABLE IF EXISTS master_agents;
 
 CREATE TABLE users (
@@ -48,19 +48,19 @@ CREATE TABLE master_item_detail_relations (
 	FOREIGN KEY (master_detail_id) REFERENCES master_details (id)
 );
 
-CREATE TABLE master_item_relations (
+CREATE TABLE master_list_item_relations (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	master_id INTEGER NOT NULL,
+	master_list_id INTEGER NOT NULL,
 	master_item_id INTEGER NOT NULL,
-	FOREIGN KEY (master_id) REFERENCES masters (id),
+	FOREIGN KEY (master_list_id) REFERENCES master_lists (id),
 	FOREIGN KEY (master_item_id) REFERENCES master_items (id)
 );
 
-CREATE TABLE master_detail_relations (
+CREATE TABLE master_list_detail_relations (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	master_id INTEGER NOT NULL,
+	master_list_id INTEGER NOT NULL,
 	master_detail_id INTEGER NOT NULL,
-	FOREIGN KEY (master_id) REFERENCES masters (id),
+	FOREIGN KEY (master_list_id) REFERENCES master_lists (id),
 	FOREIGN KEY (master_detail_id) REFERENCES master_details (id)
 );
 

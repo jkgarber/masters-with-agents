@@ -1,19 +1,17 @@
 {% extends 'base.html' %}
 
 {% block header %}
-<h1>{% block title %}Edit {{ master["master_type"]|capitalize }} Master: {{ master['name'] }}{% endblock %}</h1>
-<p><b>Created:</b> {{ master["created"].strftime("%d.%m.%Y") }}</p>
+<h1>{% block title %}New Master Agent{% endblock %}</h1>
 {% endblock %}
-	
+
 {% block main %}
 <form method="post">
 	<label for="name">Name
-		<input id="name" name="name" value="{{ request.form['name'] or master['name'] }}" autofocus required>
+		<input name="name" id="name" value="{{ request.form['name'] }}" required>
 	</label>
 	<label for="description">Description
-		<textarea id="description" name="description">{{ request.form['description'] or master['description'] }}</textarea>
+		<textarea name="description" id="description" required>{{ request.form['description'] }}</textarea>
 	</label>
-	{% if master["master_type"] == "agent" %}
 	<label for="model">Model
 		<select name="model" id="model" required autofocus>
 			<option value="gpt-4.1-mini">ChatGPT 4.1 mini</option>
@@ -28,22 +26,15 @@
 		</select>
 	</label>
 	<label for="role">Role
-		<input id="role" name="role" value="{{ request.form['role'] or master['role'] }}" autofocus required>
+		<input name="role" id="role" value="{{ request.form['role'] }}" required>
 	</label>
 	<label for="instructions">Instructions
-		<textarea id="instructions" name="instructions" required>{{ request.form['instructions'] or master['instructions'] }}</textarea>
+		<textarea name="instructions" id="instructions" required>{{ request.form['instructions'] }}</textarea>
 	</label>
-	{% endif %}
 	<input type="submit" value="Save">
 </form>
-<hr>
-<form method="post" action="{{ url_for('masters.delete', master_id=master['id']) }}">
-	<input type="submit" value="Delete">
-</form>
-{% if master["master_type"] == "agent" %}
 <script>
 	const opts = document.querySelectorAll('#model option');
-	opts.forEach((opt) => { if (opt.value === "{{ request.form['model'] or master['model'] }}") opt.selected = true;});
+	opts.forEach((opt) => if (opt.value === {{ request.form['model'] }}) opt.selected = true;)
 </script>
-{% endif %}
 {% endblock %}

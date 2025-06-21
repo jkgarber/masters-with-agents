@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block header %}
-<h1>{% block title %}New Detail - {{ master['name'] }}{% endblock %}</h1>
+<h1>{% block title %}New Master List{% endblock %}</h1>
 {% endblock %}
 
 {% block main %}
@@ -9,8 +9,8 @@
 	<label for="name">Name
 		<input name="name" id="name" value="{{ request.form['name'] }}" autofocus required>
 	</label>
-	<label for="description">Description
-		<textarea name="description" id="description">{{ request.form['description'] }}</textarea>
+	<label for="name">Description
+		<textarea name="description" id="description" value="{{ request.form['description'] }}"></textarea>
 	</label>
 	<input type="submit" value="Save">
 </form>
