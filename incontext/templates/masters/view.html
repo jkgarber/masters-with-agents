@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block header %}
+<h1>{% block title %}{{ master['master_type']|capitalize }} Master: {{ master['name'] }}{% endblock %}</h1>
+<p>{{ master['description'] }} <a href="{{ url_for('masters.edit', master_id=master['id']) }}">Edit</a></p>
+<p><b>Created:</b> {{ master['created'].strftime('%d.%m.%Y') }}</p>
+{% endblock %}
+{% block main %}
+{% if master["master_type"] == "list" %}
+<section id="items">
+	<h2>Items</h2>
+{% if master['items']|length == 0 %}
+	<p>Empty</p>
+	<a href="{{ url_for('masters.new_item', master_id=master['id']) }}">New Item</a>
+{% else %}
+	<a href="{{ url_for('masters.new_item', master_id=master['id']) }}">New Item</a>
+	<table class="item-table">
+		<tr>
+			<th>ID</th>
+			<th>Name</th>
+			{% for detail in master["details"] %}
+			<th>{{ detail['name'] }}</th>
+			{% endfor %}
+			<th>Created</th>
+		</tr>
+		{% for item in master["items"] %}
+		<tr>
+			<td>{{ item['id'] }}</td>
+			{% if item['name']|length > 30 %}
+			<td>{{ item['name']|truncate(30,false,'...') }}</td>
+			{% else %}
+			<td>{{ item['name'] }}</td>
+			{% endif %}
+			{% for content in item['contents'] %}
+			{% if content|length > 30 %}
+			<td>{{ content|truncate(30,false,'...') }}</td>
+			{% else %}
+			<td>{{ content }}</td>
+			{% endif %}
+			{% endfor %}
+			<td>{{ item['created'].strftime('%d.%m.%Y') }}</td>
+			<td><a href="{{ url_for('masters.view_item', master_id=master['id'], item_id=item['id']) }}">View</a></td>
+			<td><a href="{{ url_for('masters.edit_item', master_id=master['id'], item_id=item['id']) }}">Edit</a></td>
+		</tr>
+		{% endfor %}
+	</table>
+{% endif %}
+</section>
+<section id="details">
+	<h2>Details</h2>
+{% if master["details"]|length == 0 %}
+	<p>Empty</p>
+	<a href="{{ url_for('masters.new_detail', master_id=master['id']) }}">New Detail</a>
+{% else %}
+	<a href="{{ url_for('masters.new_detail', master_id=master['id']) }}">New Detail</a>
+	<dl>
+		{% for detail in master["details"] %}
+		<dt><b>{{ detail['name'] }}</b> <a href="{{ url_for('masters.edit_detail', master_id=master['id'], detail_id=detail['id']) }}">Edit</a></dt>
+		<dd>{{ detail['description'] }}</dd>
+		{% endfor %}
+	</dl>
+{% endif %}
+</section>
+{% elif master["master_type"] == "agent" %}
+<section>
+	<h2>Attributes</h2>
+	<ul>
+		<li><b>Creator: </b>{{ master['username'] }}</li>
+		<li><b>Name: </b>{{ master['name'] }}</li>
+		<li><b>Model: </b>{{ master['model'] }}</li>
+		<li><b>Vendor: </b>{{ master["vendor"] }}</li>
+		<li><b>Role: </b>{{ master['role'] }}</li>
+		<li><b>Instructions: </b>{{ master["instructions"] }}</li>
+	</ul>
+</section>
+{% endif %}
+{% endblock %}

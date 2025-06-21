@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block header %}
+<h1>{% block title %}Item Master: {{ item['name'] }}{% endblock %}</h1>
+<ul>
+	<li><b>List Master Name</b>: {{ master['name'] }}</li>
+	<li><b>List Master Description</b>: {{ master['description'] }}</li>
+</ul>
+{% endblock %}
+	
+{% block main %}
+<form method="post">
+	<label for="name">Name
+		<input id="name" name="name" value="{{ request.form['name'] or item['name'] }}" required> <!-- When the form hasn't been submitted, the original `agent` data appears, but if invalid form data was posted it will be displayed so that the user can fix the error. -->
+	</label>
+	{% for detail in master["details"] %}
+	<label for="{{ detail['id'] }}">{{ detail['name'] }}
+		<textarea id="{{ detail['id'] }}" name="{{ detail['id'] }}">{{ request.form[detail['id']] or item['contents'][loop.index0] }}</textarea>
+	</label>
+	{% endfor %}
+	<input type="submit" value="Save">
+</form>
+<hr>
+<form method="post" action="{{ url_for('masters.delete_item', master_id=master['id'], item_id=item['id']) }}">
+	<input type="submit" value="Delete">
+</form>
+{% endblock %}
+
