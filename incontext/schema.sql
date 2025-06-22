@@ -73,6 +73,6 @@ CREATE TABLE master_agents (
 	model TEXT NOT NULL,
 	role TEXT NOT NULL,
 	instructions TEXT NOT NULL,
-	vendor TEXT NOT NULL,
+	provider TEXT NOT NULL,
 	FOREIGN KEY (creator_id) REFERENCES users (id)
 );

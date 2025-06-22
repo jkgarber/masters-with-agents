@@ -23,13 +23,13 @@ def new():
         name = request.form['name']
         description = request.form['description']
         model = request.form['model']
-        vendor = None
+        provider = None
         if model in ['gpt-4.1-mini', 'gpt-4.1']:
-            vendor = 'openai'
+            provider = 'openai'
         elif model in ['claude-3-5-haiku-latest', 'claude-3-7-sonnet-latest']:
-            vendor = 'anthropic'
+            provider = 'anthropic'
         elif model in ["gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-1.5-flash", "gemini-1.5-flash-8b", "gemini-1.5-pro"]:
-            vendor = 'google'
+            provider = 'google'
         else:
             error = "Model not recognized as a supported model."
         role = request.form['role']
@@ -41,9 +41,9 @@ def new():
         else:
             db = get_db()
             db.execute(
-                'INSERT INTO master_agents (name, description, model, role, instructions, creator_id, vendor)'
+                'INSERT INTO master_agents (name, description, model, role, instructions, creator_id, provider)'
                 ' VALUES (?, ?, ?, ?, ?, ?, ?)',
-                (name, description, model, role, instructions, g.user['id'], vendor)
+                (name, description, model, role, instructions, g.user['id'], provider)
             )
             db.commit()
             return redirect(url_for('master_agents.index'))
@@ -67,11 +67,11 @@ def edit(master_agent_id):
         description = request.form['description']
         model = request.form["model"]
         if model in ['gpt-4.1-mini', 'gpt-4.1']:
-            vendor = 'openai'
+            provider = 'openai'
         elif model in ['claude-3-5-haiku-latest', 'claude-3-7-sonnet-latest']:
-            vendor = 'anthropic'
+            provider = 'anthropic'
         elif model in ["gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-1.5-flash", "gemini-1.5-flash-8b", "gemini-1.5-pro"]:
-            vendor = 'google'
+            provider = 'google'
         else:
             error = "Model not recognized as a supported model."
         role = request.form["role"]
@@ -84,9 +84,9 @@ def edit(master_agent_id):
             db = get_db()
             db.execute(
                 "UPDATE master_agents"
-                " SET name = ?, description = ?, model = ?, role = ?, instructions = ?, vendor = ?"
+                " SET name = ?, description = ?, model = ?, role = ?, instructions = ?, provider = ?"
                 " WHERE id = ?",
-                (name, description, model, role, instructions, vendor, master_agent_id)
+                (name, description, model, role, instructions, provider, master_agent_id)
             )
             db.commit()
             return redirect(url_for('master_agents.index'))
@@ -117,7 +117,7 @@ def get_master_agents():
 def get_master_agent(master_agent_id, check_access=True):
     db = get_db()
     master_agent = db.execute(
-        'SELECT m.id, m.creator_id, m.created, m.name, m.description, m.model, m.vendor, m.role, m.instructions, u.username'
+        'SELECT m.id, m.creator_id, m.created, m.name, m.description, m.model, m.provider, m.role, m.instructions, u.username'
         ' FROM master_agents m'
         ' JOIN users u ON u.id = m.creator_id'
         ' WHERE m.id = ?',
