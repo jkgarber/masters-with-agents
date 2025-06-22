@@ -75,7 +75,7 @@ CREATE TABLE master_agents (
 	role TEXT NOT NULL,
 	instructions TEXT NOT NULL,
 	FOREIGN KEY (creator_id) REFERENCES users (id),
-	FOREIGN_KEY (agent_model_id) REFERENCES agent_models (id)
+	FOREIGN KEY (model_id) REFERENCES agent_models (id)
 );
 
 CREATE TABLE agent_models (
@@ -86,3 +86,4 @@ CREATE TABLE agent_models (
 	model_code TEXT NOT NULL,
 	model_description TEXT NOT NULL
 );
+
