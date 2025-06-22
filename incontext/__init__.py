@@ -44,4 +44,7 @@ def create_app(test_config=None):
     from . import master_agents
     app.register_blueprint(master_agents.bp)
 
+    from . import agents
+    app.register_blueprint(agents.bp)
+
     return app

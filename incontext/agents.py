@@ -44,40 +44,42 @@ def new():
     return render_template('agents/new.html', agent_models=agent_models)
 
 
-@bp.route('/<int:id>/update', methods=('GET', 'POST'))
+@bp.route('/<int:agent_id>/view')
 @login_required
-def update(id): # id corresponds to the <int:id> in the route. Flask will capture the "id" from the url, ensure it's an int, and pass it as the id argument. To generate a URL to the update page, `url_for()` needs to be passed the `id` such as `url_for('context.update', id=context['id']).
-    agent = get_agent(id)
+def view(agent_id):
+    agent = get_agent(agent_id)
+    return render_template('agents/view.html', agent=agent)
 
-    if request.method == 'POST':
-        model = request.form['model']
-        name = request.form['name']
-        role = request.form['role']
-        instructions = request.form['instructions']
+
+@bp.route('/<int:agent_id>/edit', methods=('GET', 'POST'))
+@login_required
+def edit(agent_id):
+    agent = get_agent(agent_id)
+    agent_models = get_agent_models()
+    if request.method == "POST":
         error = None
-
-        if not model or not name or not role or not instructions:
-            error = 'Model, name, role, and instructions are all required.'
-
+        name = request.form['name']
+        description = request.form['description']
+        model_id = int(request.form['model_id'])
+        model = next((agent_model for agent_model in agent_models if agent_model["id"] == model_id), None)
+        role = request.form["role"]
+        instructions = request.form["instructions"]
+        if not name or not model or not role or not instructions:
+            error = "Name, model, role, and instructions are all required."
         if error is not None:
             flash(error)
         else:
-            if model in ['gpt-4.1-mini', 'gpt-4.1']:
-                vendor = 'openai'
-            elif model in ['claude-3-5-haiku-latest', 'claude-3-7-sonnet-latest']:
-                vendor = 'anthropic'
-            else:
-                vendor = 'google'
             db = get_db()
             db.execute(
-                'UPDATE agents SET model = ?, name = ?, role = ?, instructions = ?, vendor = ?'
-                ' WHERE id = ?',
-                (model, name, role, instructions, vendor, id)
+                "UPDATE agents"
+                " SET name = ?, description = ?, model_id = ?, role = ?, instructions = ?"
+                " WHERE id = ?",
+                (name, description, model_id, role, instructions, agent_id)
             )
             db.commit()
             return redirect(url_for('agents.index'))
-    
-    return render_template('agents/update.html', agent=agent)
+    return render_template("agents/edit.html", agent=agent, agent_models=agent_models)
+
 
 @bp.route('/<int:id>/delete', methods=('POST',))
 @login_required
@@ -106,15 +108,19 @@ def get_agents():
     return agents
 
 
-def get_agent(id, check_creator=True):
-    agent = get_db().execute(
-        'SELECT a.id, model, name, role, instructions, created, creator_id, username, a.vendor'
-        ' FROM agents a JOIN users u ON a.creator_id = u.id'
+def get_agent(agent_id, check_access=True):
+    db = get_db()
+    agent = db.execute(
+        'SELECT a.id, a.creator_id, a.created, a.name, a.description, a.model_id, a.role, a.instructions, m.model_name, m.provider_name, u.username'
+        ' FROM agents a'
+        ' JOIN agent_models m ON m.id = a.model_id'
+        ' JOIN users u ON u.id = m.creator_id'
         ' WHERE a.id = ?',
-        (id,)
+        (agent_id,)
     ).fetchone()
     if agent is None:
         abort(404)
-    if check_creator and agent['creator_id'] != g.user['id']:
-        abort(403)
+    if check_access:
+        if agent['creator_id'] != g.user['id']:
+            abort(403)
     return agent
