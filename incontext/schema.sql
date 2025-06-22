@@ -6,7 +6,9 @@ DROP TABLE IF EXISTS master_item_detail_relations;
 DROP TABLE IF EXISTS master_list_item_relations;
 DROP TABLE IF EXISTS master_list_detail_relations;
 DROP TABLE IF EXISTS master_agents;
+DROP TABLE IF EXISTS agents;
 DROP TABLE IF EXISTS agent_models;
+DROP TABLE IF EXISTS master_agent_tethers;
 
 CREATE TABLE users (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -78,6 +80,19 @@ CREATE TABLE master_agents (
 	FOREIGN KEY (model_id) REFERENCES agent_models (id)
 );
 
+CREATE TABLE agents (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	creator_id INTEGER NOT NULL,
+	created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	name TEXT NOT NULL,
+	description TEXT NOT NULL,
+	model_id INTEGER NOT NULL,
+	role TEXT NOT NULL,
+	instructions TEXT NOT NULL,
+	FOREIGN KEY (creator_id) REFERENCES users (id),
+	FOREIGN KEY (model_id) REFERENCES agent_models (id)
+);
+
 CREATE TABLE agent_models (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	provider_name TEXT NOT NULL,
@@ -85,5 +100,13 @@ CREATE TABLE agent_models (
 	model_name TEXT NOT NULL,
 	model_code TEXT NOT NULL,
 	model_description TEXT NOT NULL
+);
+
+CREATE TABLE master_agent_tethers (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	agent_id INTEGER NOT NULL,
+	master_agent_id INTEGER NOT NULL,
+	FOREIGN KEY (agent_id) REFERENCES agents (id),
+	FOREIGN KEY (master_agent_id) REFERENCES master_agents (id)
 );
 
