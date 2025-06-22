@@ -81,22 +81,14 @@ def edit(agent_id):
     return render_template("agents/edit.html", agent=agent, agent_models=agent_models)
 
 
-@bp.route('/<int:id>/delete', methods=('POST',))
+@bp.route("<int:agent_id>/delete", methods=("POST",))
 @login_required
-def delete(id):
-    agent = get_agent(id)
+def delete(agent_id):
+    agent = get_agent(agent_id)
     db = get_db()
-    relations = db.execute(
-        'SELECT COUNT(id) FROM conversation_agent_relations WHERE agent_id = ?', (id,)
-    ).fetchone()
-    n = relations[0]
-    if n > 0:
-        flash(f'Cannot delete this agent as it is linked to {n} conversation(s).', 'error')
-        return redirect(url_for('agents.update', id=id))
-    else:
-        db.execute('DELETE FROM agents WHERE id = ?', (id,))
-        db.commit()
-        return redirect(url_for('agents.index'))
+    db.execute("DELETE FROM agents WHERE id = ?", (agent_id,))
+    db.commit()
+    return redirect(url_for('agents.index'))
 
 
 def get_agents():
