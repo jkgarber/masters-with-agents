@@ -110,8 +110,9 @@ def get_master_agents():
 def get_master_agent(master_agent_id, check_access=True):
     db = get_db()
     master_agent = db.execute(
-        'SELECT m.id, m.creator_id, m.created, m.name, m.description, m.model, m.provider, m.role, m.instructions, u.username'
+        'SELECT m.id, m.creator_id, m.created, m.name, m.description, m.role, m.instructions, a.model_name, a.provider_name, u.username'
         ' FROM master_agents m'
+        ' JOIN agent_models a ON a.id = m.model_id'
         ' JOIN users u ON u.id = m.creator_id'
         ' WHERE m.id = ?',
         (master_agent_id,)
