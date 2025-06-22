@@ -54,19 +54,13 @@ def view(master_agent_id):
 @login_required
 def edit(master_agent_id):
     master_agent = get_master_agent(master_agent_id)
+    agent_models = get_agent_models()
     if request.method == "POST":
         error = None
         name = request.form['name']
         description = request.form['description']
-        model = request.form["model"]
-        if model in ['gpt-4.1-mini', 'gpt-4.1']:
-            provider = 'openai'
-        elif model in ['claude-3-5-haiku-latest', 'claude-3-7-sonnet-latest']:
-            provider = 'anthropic'
-        elif model in ["gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-1.5-flash", "gemini-1.5-flash-8b", "gemini-1.5-pro"]:
-            provider = 'google'
-        else:
-            error = "Model not recognized as a supported model."
+        model_id = int(request.form['model_id'])
+        model = next((agent_model for agent_model in agent_models if agent_model["id"] == model_id), None)
         role = request.form["role"]
         instructions = request.form["instructions"]
         if not name or not model or not role or not instructions:
@@ -77,13 +71,13 @@ def edit(master_agent_id):
             db = get_db()
             db.execute(
                 "UPDATE master_agents"
-                " SET name = ?, description = ?, model = ?, role = ?, instructions = ?, provider = ?"
+                " SET name = ?, description = ?, model_id = ?, role = ?, instructions = ?"
                 " WHERE id = ?",
-                (name, description, model, role, instructions, provider, master_agent_id)
+                (name, description, model_id, role, instructions, master_agent_id)
             )
             db.commit()
             return redirect(url_for('master_agents.index'))
-    return render_template("master-agents/edit.html", master_agent=master_agent)
+    return render_template("master-agents/edit.html", master_agent=master_agent, agent_models=agent_models)
 
 
 @bp.route("<int:master_agent_id>/delete", methods=("POST",))
@@ -110,7 +104,7 @@ def get_master_agents():
 def get_master_agent(master_agent_id, check_access=True):
     db = get_db()
     master_agent = db.execute(
-        'SELECT m.id, m.creator_id, m.created, m.name, m.description, m.role, m.instructions, a.model_name, a.provider_name, u.username'
+        'SELECT m.id, m.creator_id, m.created, m.name, m.description, m.model_id, m.role, m.instructions, a.model_name, a.provider_name, u.username'
         ' FROM master_agents m'
         ' JOIN agent_models a ON a.id = m.model_id'
         ' JOIN users u ON u.id = m.creator_id'

@@ -32,12 +32,10 @@
 <form method="post" action="{{ url_for('master_agents.delete', master_agent_id=master_agent['id']) }}">
 	<input type="submit" value="Delete">
 </form>
-{% if request.form["model_id"] %}
 <script>
 	const opts = document.querySelectorAll('#model option');
 	opts.forEach((opt) => {
 		if (opt.value == "{{ request.form['model_id'] or master_agent['model_id'] }}") opt.selected = true;
 	});
 </script>
-{% endif %}
 {% endblock %}
