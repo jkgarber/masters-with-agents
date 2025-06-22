@@ -114,7 +114,7 @@ def get_agent(agent_id, check_access=True):
         'SELECT a.id, a.creator_id, a.created, a.name, a.description, a.model_id, a.role, a.instructions, m.model_name, m.provider_name, u.username'
         ' FROM agents a'
         ' JOIN agent_models m ON m.id = a.model_id'
-        ' JOIN users u ON u.id = m.creator_id'
+        ' JOIN users u ON u.id = a.creator_id'
         ' WHERE a.id = ?',
         (agent_id,)
     ).fetchone()
