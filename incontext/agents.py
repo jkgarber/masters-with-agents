@@ -6,6 +6,8 @@ from werkzeug.exceptions import abort
 from incontext.auth import login_required
 from incontext.db import get_db
 from incontext.master_agents import get_agent_models
+from incontext.master_agents import get_master_agent
+from incontext.master_agents import get_master_agents
 
 bp = Blueprint('agents', __name__, url_prefix='/agents')
 
@@ -42,6 +44,23 @@ def new():
             db.commit()
             return redirect(url_for('agents.index'))
     return render_template('agents/new.html', agent_models=agent_models)
+
+
+@bp.route("/new-tethered", methods=("GET", "POST"))
+@login_required
+def new_tethered():
+    if request.method == "POST":
+        requested_master_agent = get_master_agent(request.form["master_agent_id"], False)
+        db = get_db()
+        db.execute(
+            "INSERT INTO tethered_agents (creator_id, master_agent_id)"
+            " VALUES (?, ?)",
+            (g.user["id"], request.form["master_agent_id"])
+        )
+        db.commit()
+        return redirect(url_for("agents.index"))
+    master_agents = get_master_agents()
+    return render_template("agents/new_tethered.html", master_agents=master_agents)
 
 
 @bp.route('/<int:agent_id>/view')

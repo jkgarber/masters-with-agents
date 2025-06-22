@@ -102,11 +102,11 @@ CREATE TABLE agent_models (
 	model_description TEXT NOT NULL
 );
 
-CREATE TABLE master_agent_tethers (
+CREATE TABLE tethered_agents (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	agent_id INTEGER NOT NULL,
+	creator_id INTEGER NOT NULL,
+	created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	master_agent_id INTEGER NOT NULL,
-	FOREIGN KEY (agent_id) REFERENCES agents (id),
 	FOREIGN KEY (master_agent_id) REFERENCES master_agents (id)
 );
 
