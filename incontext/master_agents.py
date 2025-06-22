@@ -18,20 +18,13 @@ def index():
 @bp.route('/new', methods=('GET', 'POST'))
 @login_required
 def new():
+    agent_models = get_agent_models()
     if request.method == 'POST':
         error = None
         name = request.form['name']
         description = request.form['description']
-        model = request.form['model']
-        provider = None
-        if model in ['gpt-4.1-mini', 'gpt-4.1']:
-            provider = 'openai'
-        elif model in ['claude-3-5-haiku-latest', 'claude-3-7-sonnet-latest']:
-            provider = 'anthropic'
-        elif model in ["gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-1.5-flash", "gemini-1.5-flash-8b", "gemini-1.5-pro"]:
-            provider = 'google'
-        else:
-            error = "Model not recognized as a supported model."
+        model_id = int(request.form['model_id'])
+        model = next((agent_model for agent_model in agent_models if agent_model["id"] == model_id), None)
         role = request.form['role']
         instructions = request.form['instructions']
         if not name or not model or not role or not instructions:
@@ -41,13 +34,13 @@ def new():
         else:
             db = get_db()
             db.execute(
-                'INSERT INTO master_agents (name, description, model, role, instructions, creator_id, provider)'
-                ' VALUES (?, ?, ?, ?, ?, ?, ?)',
-                (name, description, model, role, instructions, g.user['id'], provider)
+                'INSERT INTO master_agents (name, description, model_id, role, instructions, creator_id)'
+                ' VALUES (?, ?, ?, ?, ?, ?)',
+                (name, description, model_id, role, instructions, g.user['id'])
             )
             db.commit()
             return redirect(url_for('master_agents.index'))
-    return render_template('master-agents/new.html')
+    return render_template('master-agents/new.html', agent_models=agent_models)
 
 
 @bp.route('/<int:master_agent_id>/view')
@@ -129,3 +122,12 @@ def get_master_agent(master_agent_id, check_access=True):
         if master_agent['creator_id'] != g.user['id']:
             abort(403)
     return master_agent
+
+
+def get_agent_models():
+    db = get_db()
+    agent_models = db.execute(
+        "SELECT id, provider_name, provider_code, model_name, model_code, model_description"
+        " FROM agent_models"
+    ).fetchall()
+    return agent_models

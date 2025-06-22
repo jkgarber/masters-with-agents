@@ -32,7 +32,7 @@ def init_db():
         db.executescript(f.read().decode('utf-8'))
   
     db.execute('INSERT INTO users (username, password) VALUES(?, ?)',('admin', os.environ.get('IC_ADMIN_PW')),)
-    print(f"agent models: {current_app.config['AGENT_MODELS']}") 
+    
     db.executemany(
         "INSERT INTO agent_models (provider_name, provider_code, model_name, model_code, model_description)"
         " VALUES (?, ?, ?, ?, ?)",

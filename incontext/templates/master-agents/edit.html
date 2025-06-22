@@ -14,16 +14,10 @@
 		<textarea id="description" name="description">{{ request.form['description'] or master_agent['description'] }}</textarea>
 	</label>
 	<label for="model">Model
-		<select name="model" id="model" required autofocus>
-			<option value="gpt-4.1-mini">ChatGPT 4.1 mini</option>
-			<option value="gpt-4.1">ChatGPT 4.1</option>
-			<option value="claude-3-5-haiku-latest">Claude Haiku 3.5</option>
-			<option value="claude-3-7-sonnet-latest">Claude Sonnet 3.7</option>
-			<option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
-			<option value="gemini-2.0-flash-lite">Gemini 2.0 Flash-Lite</option>
-			<option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
-			<option value="gemini-1.5-flash-8b">Gemini 1.5 Flash-8B</option>
-			<option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+		<select name="model_id" id="model" required autofocus>
+			{% for agent_model in agent_models %}
+			<option value="{{ agent_model["id"] }}">{{ agent_model["model_name"] }}</option>
+			{% endfor %}
 		</select>
 	</label>
 	<label for="role">Role
@@ -38,8 +32,12 @@
 <form method="post" action="{{ url_for('master_agents.delete', master_agent_id=master_agent['id']) }}">
 	<input type="submit" value="Delete">
 </form>
+{% if request.form["model_id"] %}
 <script>
 	const opts = document.querySelectorAll('#model option');
-	opts.forEach((opt) => { if (opt.value === "{{ request.form['model'] or master_agent['model'] }}") opt.selected = true;});
+	opts.forEach((opt) => {
+		if (opt.value == "{{ request.form['model_id'] or master_agent['model_id'] }}") opt.selected = true;
+	});
 </script>
+{% endif %}
 {% endblock %}
