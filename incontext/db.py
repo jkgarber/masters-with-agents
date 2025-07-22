@@ -30,9 +30,9 @@ def init_db():
 
     with current_app.open_resource('schema.sql') as f: # `open_resource` opens a file relative to the `incontext` package
         db.executescript(f.read().decode('utf-8'))
-  
-    db.execute('INSERT INTO users (username, password) VALUES(?, ?)',('admin', os.environ.get('IC_ADMIN_PW')),)
-    
+
+    db.execute('INSERT INTO users (username, password, admin) VALUES(?, ?, ?)', ('admin', os.environ.get('IC_ADMIN_PW'), True),)
+
     db.executemany(
         "INSERT INTO agent_models (provider_name, provider_code, model_name, model_code, model_description)"
         " VALUES (?, ?, ?, ?, ?)",

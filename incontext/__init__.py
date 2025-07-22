@@ -14,30 +14,30 @@ def create_app(test_config=None):
         SECRET_KEY='dev', # used by Flask and extensions to keep data safe. should be overridden with a random valye when deploying.
         DATABASE=os.path.join(app.instance_path, 'incontext.sqlite'), # the path where the sqlite database will be saved. `app.instance_path` is the path that Flask has chosen for the instance folder.
     )
-    
+
     if test_config is None:
         # load the instance config, if it exists, when not testing
         app.config.from_pyfile('config.py', silent=True) # overrides the default config with values taken from the `config.py` file in the instance folder if it exists. For example, when deploying, this can be used to set a real `SECRET_KEY`.
     else:
         # load the test config if passed in
-	    app.config.from_mapping(test_config) # `test_config` can also be passed to the factory, and will be used instead of the instance config. This is so the tests can be configured independently of any development config values.
+        app.config.from_mapping(test_config) # `test_config` can also be passed to the factory, and will be used instead of the instance config. This is so the tests can be configured independently of any development config values.
 
     # ensure the instance folder exists
     try:
-	    os.makedirs(app.instance_path) # Flask doesn't create the instance folder automatically, but it needs to be created because your project will create the sqlite database file there.
+        os.makedirs(app.instance_path) # Flask doesn't create the instance folder automatically, but it needs to be created because your project will create the sqlite database file there.
     except OSError:
-	    pass
+        pass
 
     from . import db
     db.init_app(app) # calling the function to register a couple of database-related things with the app
-    
+
     from . import auth
     app.register_blueprint(auth.bp) # has views for login, register, and logout.
 
     from . import home
     app.register_blueprint(home.bp)
     app.add_url_rule('/', endpoint='index') # you can now use `url_for('index')` for `url_for('home.index')` because there is no url prefix for the home bp.
-    
+
     from . import master_lists
     app.register_blueprint(master_lists.bp)
 

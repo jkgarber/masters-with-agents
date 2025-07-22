@@ -4,6 +4,7 @@ from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for
 )
 from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.exceptions import abort
 
 from incontext.db import get_db
 
@@ -73,10 +74,12 @@ def load_logged_in_user():
             'SELECT * FROM users WHERE id = ?', (user_id,)
         ).fetchone() # g.user lasts for the lasts for the length of the request.
 
+
 @bp.route('/logout')
 def logout():
     session.clear() # then load_logged_in_user won't load a user on subsequent requests.
     return redirect(url_for('index'))
+
 
 def login_required(view): # decorator to check that a user is logged in. apply it to views that require authentication.
     @functools.wraps(view)
@@ -86,5 +89,14 @@ def login_required(view): # decorator to check that a user is logged in. apply i
 
         return view(**kwargs)
 
+    return wrapped_view
+
+
+def admin_only(view): # decorator to check that a user has admin property. apply it to views that are for admins only.
+    @functools.wraps(view)
+    def wrapped_view(**kwargs):
+        if not g.user["admin"]:
+            abort(403)
+        return view(**kwargs)
     return wrapped_view
 

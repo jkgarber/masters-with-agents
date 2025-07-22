@@ -9,11 +9,13 @@ DROP TABLE IF EXISTS master_agents;
 DROP TABLE IF EXISTS agents;
 DROP TABLE IF EXISTS agent_models;
 DROP TABLE IF EXISTS master_agent_tethers;
+DROP TABLE IF EXISTS tethered_agents;
 
 CREATE TABLE users (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	username TEXT UNIQUE NOT NULL,
-	password TEXT NOT NULL
+	password TEXT NOT NULL,
+    admin BOOL NOT NULL DEFAULT 0
 );
 
 CREATE TABLE master_lists (

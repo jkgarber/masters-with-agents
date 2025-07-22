@@ -14,8 +14,8 @@ bp = Blueprint('agents', __name__, url_prefix='/agents')
 @bp.route('/')
 @login_required
 def index():
-    agents = get_agents()
-    return render_template('agents/index.html', agents=agents)
+    agents, master_agents = get_agents()
+    return render_template('agents/index.html', agents=agents, master_agents=master_agents)
 
 
 @bp.route('/new', methods=('GET', 'POST'))
@@ -116,7 +116,18 @@ def get_agents():
         'SELECT a.id, a.creator_id, a.created, a.name, a.description, a.model_id, a.role, a.instructions, u.username'
         ' FROM agents a JOIN users u ON a.creator_id = u.id'
     ).fetchall()
-    return agents
+    master_agents = db.execute(
+        "SELECT m.id, m.creator_id, m.created, m.name, m.description, m.model_id, m.role, m.instructions, u.username"
+        " FROM master_agents m"
+        " JOIN users u ON u.id = m.creator_id"
+        " WHERE m.id IN ("
+        "  SELECT master_agent_id"
+        "  FROM tethered_agents"
+        "  WHERE creator_id = ?"
+        " )",
+        (g.user["id"],)
+    ).fetchall()
+    return agents, master_agents
 
 
 def get_agent(agent_id, check_access=True):

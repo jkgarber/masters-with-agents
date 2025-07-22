@@ -3,13 +3,14 @@ from flask import (
 )
 from werkzeug.exceptions import abort
 
-from incontext.auth import login_required
+from incontext.auth import login_required, admin_only
 from incontext.db import get_db
 
 bp = Blueprint('master_agents', __name__, url_prefix='/master-agents')
 
 @bp.route('/')
 @login_required
+@admin_only
 def index():
     master_agents = get_master_agents()
     return render_template('master-agents/index.html', master_agents=master_agents)
@@ -17,6 +18,7 @@ def index():
 
 @bp.route('/new', methods=('GET', 'POST'))
 @login_required
+@admin_only
 def new():
     agent_models = get_agent_models()
     if request.method == 'POST':
@@ -45,6 +47,7 @@ def new():
 
 @bp.route('/<int:master_agent_id>/view')
 @login_required
+@admin_only
 def view(master_agent_id):
     master_agent = get_master_agent(master_agent_id)
     return render_template('master-agents/view.html', master_agent=master_agent)
@@ -52,6 +55,7 @@ def view(master_agent_id):
 
 @bp.route('/<int:master_agent_id>/edit', methods=('GET', 'POST'))
 @login_required
+@admin_only
 def edit(master_agent_id):
     master_agent = get_master_agent(master_agent_id)
     agent_models = get_agent_models()
@@ -82,6 +86,7 @@ def edit(master_agent_id):
 
 @bp.route("<int:master_agent_id>/delete", methods=("POST",))
 @login_required
+@admin_only
 def delete(master_agent_id):
     master_agent = get_master_agent(master_agent_id)
     db = get_db()
@@ -97,8 +102,6 @@ def get_master_agents():
         ' FROM master_agents m'
         " JOIN agent_models a"
         " ON a.id = m.model_id"
-        ' WHERE m.creator_id = ?',
-        (g.user['id'],)
     ).fetchall()
     return master_agents
 
