@@ -49,7 +49,7 @@ def test_data_entry(app):
         assert master_agent_count == 3
         mar_count = db.execute("SELECT COUNT(id) AS count FROM master_agent_relations").fetchone()["count"]
         assert mar_count == 3
-       
+
 
 def test_admin_login(client, auth):
     username = 'admin'
@@ -59,4 +59,5 @@ def test_admin_login(client, auth):
         client.get('/')
         assert session['user_id'] == 1
         assert g.user['username'] == 'admin'
+        assert g.user["admin"] == True
 

@@ -1,7 +1,7 @@
-INSERT INTO users (username, password)
+INSERT INTO users (username, password, admin)
 VALUES
   ('test', 'pbkdf2:sha256:50000$TCI4GzcX$0de171a4f4dac32e3364c7ddc7c14f3e2fa61f2d17574483f7ffbb431b4acb2f', 1),
-  ('other', 'pbkdf2:sha256:50000$kJPKsz6N$d2d4784f1b030a9761f5ccaeeaca413f27f2ecb76d6168407af962ddce849f79');
+  ('other', 'pbkdf2:sha256:50000$kJPKsz6N$d2d4784f1b030a9761f5ccaeeaca413f27f2ecb76d6168407af962ddce849f79', 0);
 
 INSERT INTO master_items (creator_id, name)
 VALUES
@@ -21,7 +21,7 @@ VALUES
 	(3, 'detail name 5', 'detail description 5'),
 	(3, 'detail name 6', 'detail description 6');
 
-INSERT INTO master_item_detail_relations (master_item_id, master_detail_id, content)
+INSERT INTO master_item_detail_relations (master_item_id, master_detail_id, master_content)
 VALUES
 	(1, 1, 'relation content 1'),
 	(1, 2, 'relation content 2'),

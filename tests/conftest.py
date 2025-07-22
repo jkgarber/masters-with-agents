@@ -4,6 +4,7 @@ import tempfile
 import pytest
 from incontext import create_app
 from incontext.db import get_db, init_db
+from instance.config import AGENT_MODELS
 
 with open(os.path.join(os.path.dirname(__file__), 'data.sql'), 'rb') as f:
     _data_sql = f.read().decode('utf8')
@@ -14,7 +15,8 @@ def app():
 
     app = create_app({
         'TESTING': True, # tells Flask that the app is in test mode. makes testing better in Flask, and also tapped by extensions.
-        'DATABASE': db_path, # override so it points to the temp path instead of the instance folder. 
+        'DATABASE': db_path, # override so it points to the temp path instead of the instance folder.
+        'AGENT_MODELS': AGENT_MODELS,
     })
 
     with app.app_context(): # create the test db (at the temp file path)
