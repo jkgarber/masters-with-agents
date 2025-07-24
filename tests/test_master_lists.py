@@ -46,7 +46,7 @@ def test_new_master_list(app, client, auth):
     )
     with app.app_context():
         db = get_db()
-        master-lists = db.execute('SELECT name, description FROM master_lists WHERE creator_id = 2').fetchall()
+        master_lists = db.execute('SELECT name, description FROM master_lists WHERE creator_id = 2').fetchall()
         assert len(masters) == 3
         assert masters[2]['name'] == 'master list name 3'
         assert masters[2]['description'] == 'master list description 3'

@@ -43,7 +43,7 @@ def test_new_master_agent(app, client, auth):
         for agent_model in agent_models:
             assert agent_model["model_name"].encode() in response.data
     # data validation
-	response = client.post(
+    response = client.post(
         "master-agents/new",
         data={
 			"name": "",
@@ -77,6 +77,7 @@ def test_new_master_agent(app, client, auth):
         }
     )
     assert b'Model not recognized as a supported model.' in response.data
+    response = client.post(
         "master-agents/new",
         data={
 			"name": "master agent name 4",
@@ -85,7 +86,6 @@ def test_new_master_agent(app, client, auth):
 			"role": "master agent role 4",
             "instructions": ""
         }
-    response = client.post(
     )
     assert b"Model, name, role, and instructions are all required." in response.data
     # master agent is saved to database
