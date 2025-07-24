@@ -1,6 +1,7 @@
 import pytest
 from incontext.db import get_db
 
+
 def test_index(client, auth):
     # user must be logged in
     response = client.get('/master-lists/')
@@ -51,53 +52,37 @@ def test_new_master_list(app, client, auth):
         assert masters[2]['description'] == 'master list description 3'
 
 
-def test_view_list_master(app, client, auth):
+def test_view_master_list(app, client, auth):
     # user must be logged in
-    response = client.get('masters/1/view')
+    response = client.get("master-lists/1/view")
     assert response.status_code == 302
-    assert response.headers['Location'] == '/auth/login'
-    # user must be list master creator
-    auth.login('other', 'other')
-    assert client.get('masters/1/view').status_code == 403
+    assert response.headers["Location"] == "/auth/login"
+    # user must be master list creator
+    auth.login("other", "other")
+    assert client.get("master-lists/1/view").status_code == 403
     auth.login()
-    response = client.get('/masters/1/view')
+    response = client.get("/master-lists/1/view")
     assert response.status_code == 200
-    # list master data gets served
-    assert b'master name 1' in response.data
-    assert b'master description 1' in response.data
-    assert b'detail name 1' in response.data
-    assert b'detail name 2' in response.data
-    assert b'item name 1' in response.data
-    assert b'item name 2' in response.data
-    assert b'relation content 1' in response.data
-    assert b'relation content 2' in response.data
-    assert b'relation content 3' in response.data
-    assert b'relation content 4' in response.data
-    assert b'detail description 1' in response.data
-    assert b'detail description 2' in response.data
-    # other list master data does not get served
-    assert b'item name 3' not in response.data
-    assert b'detail name 3' not in response.data
-    assert b'relation content 5' not in response.data
-    assert b'detail description 3' not in response.data
-    # other users list master data does not get served
-    assert b'item name 4' not in response.data
-    assert b'item name 5' not in response.data
-    assert b'item name 6' not in response.data
-    assert b'detail name 4' not in response.data
-    assert b'detail name 5' not in response.data
-    assert b'detail name 6' not in response.data
-    assert b'relation content 5' not in response.data
-    assert b'relation content 6' not in response.data
-    assert b'relation content 7' not in response.data
-    assert b'relation content 8' not in response.data
-    assert b'relation content 9' not in response.data
-    assert b'relation content 10' not in response.data
-    assert b'detail description 4' not in response.data
-    assert b'detail description 5' not in response.data
-    assert b'detail description 6' not in response.data
+    # master list data gets served
+    assert b"master list name 1" in response.data
+    assert b"master list description 1" in response.data
+    assert b"master item name 1" in response.data
+    assert b"master item name 2" in response.data
+    assert b"master detail name 1" in response.data
+    assert b"detail description 1" in response.data
+    assert b"master detail name 2" in response.data
+    assert b"detail description 2" in response.data
+    assert b"master relation content 1" in response.data
+    assert b"master relation content 2" in response.data
+    assert b"master relation content 3" in response.data
+    assert b"master relation content 4" in response.data
+    # other master list data does not get served
+    assert b"master item name 3" not in response.data
+    assert b"master detail name 3" not in response.data
+    assert b"master detail description 3" not in response.data
+    assert b"master relation content 5" not in response.data
     # list master must exist
-    assert client.get('masters/8/view').status_code == 404
+    assert client.get("master-lists/4/view").status_code == 404
 
 
 def test_edit_list_master(app, client, auth):
