@@ -8,7 +8,7 @@
         - [x] new
         - [x] view
         - [x] edit
-        - [ ] delete
+        - [x] delete
         - [ ] data validation
         - [ ] admin only
     - [ ] manage master agents

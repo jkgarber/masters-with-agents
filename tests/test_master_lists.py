@@ -123,14 +123,14 @@ def test_edit_master_list(app, client, auth):
     assert client.get('/master-lists/3/edit').status_code == 404
 
 
-def test_delete_list_master(app, client, auth):
+def test_delete_master_list(app, client, auth):
     # user must be logged in
-    response = client.post('/masters/1/delete')
+    response = client.post("/master-lists/1/delete")
     assert response.status_code == 302
-    assert response.headers['Location'] == '/auth/login'
+    assert response.headers["Location"] == "/auth/login"
     # user must be master creator
-    auth.login('other', 'other')
-    assert client.post('masters/1/delete').status_code == 403
+    auth.login("other", "other")
+    assert client.post("master-lists/1/delete").status_code == 403
     # list master gets deleted
     auth.login()
     with app.app_context():
@@ -144,38 +144,38 @@ def test_delete_list_master(app, client, auth):
         master_item_detail_relation_count = db.execute(
             'SELECT COUNT(id) AS count FROM master_item_detail_relations'
         ).fetchone()['count']
-        master_count = db.execute(
-            'SELECT COUNT(id) AS count FROM masters'
+        master_list_count = db.execute(
+            'SELECT COUNT(id) AS count FROM master_lists'
         ).fetchone()['count']
-        master_item_relation_count = db.execute(
-            'SELECT COUNT(id) AS count FROM master_item_relations'
+        master_list_item_relation_count = db.execute(
+            'SELECT COUNT(id) AS count FROM master_list_item_relations'
         ).fetchone()['count']
-        master_detail_relation_count = db.execute(
-            'SELECT COUNT(id) AS count FROM master_detail_relations'
+        master_list_detail_relation_count = db.execute(
+            'SELECT COUNT(id) AS count FROM master_list_detail_relations'
         ).fetchone()['count']
-        affected_item_ids = db.execute(
-            'SELECT master_item_id FROM master_item_relations WHERE master_id = 1'
+        affected_master_item_ids = db.execute(
+            'SELECT master_item_id FROM master_list_item_relations WHERE master_list_id = 1'
         ).fetchall()
         assert len(affected_item_ids) == 2
-        affected_item_ids = [item_id['master_item_id'] for item_id in affected_item_ids]
-        placeholders_affected_item_ids = f'{"?, " * len(affected_item_ids)}'[:-2]
-        affected_detail_ids = db.execute(
-            'SELECT master_detail_id FROM master_detail_relations WHERE master_id = 1'
+        affected_master_item_ids = [master_item_id['master_item_id'] for master_item_id in affected_master_item_ids]
+        placeholders_affected_master_item_ids = f'{"?, " * len(affected_master_item_ids)}'[:-2]
+        affected_master_detail_ids = db.execute(
+            'SELECT master_detail_id FROM master_list_detail_relations WHERE master_list_id = 1'
         ).fetchall()
-        assert len(affected_detail_ids) == 2
-        affected_detail_ids = [detail_id['master_detail_id'] for detail_id in affected_detail_ids]
-        placeholders_affected_detail_ids = f'{"?, " * len(affected_detail_ids)}'[:-2]
-        affected_item_and_detail_ids = affected_item_ids + affected_detail_ids
-        affected_relation_ids = db.execute(
+        assert len(affected_master_detail_ids) == 2
+        affected_master_detail_ids = [master_detail_id['master_detail_id'] for master_detail_id in affected_master_detail_ids]
+        placeholders_affected_master_detail_ids = f'{"?, " * len(affected_master_detail_ids)}'[:-2]
+        affected_master_item_and_detail_ids = affected_master_item_ids + affected_master_detail_ids
+        affected_master_item_detail_relation_ids = db.execute(
             'SELECT id, master_item_id FROM master_item_detail_relations'
-            f' WHERE master_item_id IN ({placeholders_affected_item_ids})'
-            f' OR master_detail_id IN ({placeholders_affected_detail_ids})',
-            affected_item_and_detail_ids
+            f' WHERE master_item_id IN ({placeholders_affected_master_item_ids})'
+            f' OR master_detail_id IN ({placeholders_affected_master_detail_ids})',
+            affected_master_item_and_detail_ids
         ).fetchall()
-        assert len(affected_relation_ids) == 4
-        response = client.post('/masters/1/delete')
-        deleted_master = db.execute('SELECT * FROM masters WHERE id = 1').fetchone()
-        assert deleted_master == None
+        assert len(affected_master_item_detail_relation_ids) == 4
+        response = client.post('/master-lists/1/delete')
+        deleted_master_list = db.execute('SELECT * FROM master-lists WHERE id = 1').fetchone()
+        assert deleted_master_list == None
         deleted_master_item_relations = db.execute(
             'SELECT * FROM master_item_relations WHERE master_id = 1'
         ).fetchall()
@@ -183,41 +183,41 @@ def test_delete_list_master(app, client, auth):
         deleted_master_detail_relations = db.execute('SELECT * FROM master_detail_relations WHERE master_id = 1').fetchall()
         assert len(deleted_master_detail_relations) == 0
         deleted_master_items = db.execute(
-            f'SELECT * FROM master_items WHERE id IN ({placeholders_affected_item_ids})',
-            affected_item_ids
+            f'SELECT * FROM master_items WHERE id IN ({placeholders_affected_master_item_ids})',
+            affected_master_item_ids
         ).fetchall()
         assert len(deleted_master_items) == 0
         deleted_master_details = db.execute(
-            f'SELECT * FROM master_details WHERE id IN ({placeholders_affected_detail_ids})',
-            affected_detail_ids
+            f'SELECT * FROM master_details WHERE id IN ({placeholders_affected_master_detail_ids})',
+            affected_master_detail_ids
         ).fetchall()
         assert len(deleted_master_details) == 0
-        deleted_master_relations = db.execute(
+        deleted_master_item_detail_relations = db.execute(
             'SELECT * FROM master_item_detail_relations'
-            f' WHERE master_item_id IN ({placeholders_affected_item_ids})'
-            f' OR master_detail_id IN ({placeholders_affected_detail_ids})',
-            affected_item_and_detail_ids
+            f' WHERE master_item_id IN ({placeholders_affected_master_item_ids})'
+            f' OR master_detail_id IN ({placeholders_affected_master_detail_ids})',
+            affected_master_item_and_detail_ids
         ).fetchall()
-        assert len(deleted_master_relations) == 0
+        assert len(deleted_master_item_detail_relations) == 0
         # other master data does not get deleted
         master_items = db.execute('SELECT * FROM master_items').fetchall()
-        assert len(master_items) == master_item_count - len(affected_item_ids)
+        assert len(master_items) == master_item_count - len(affected_master_item_ids)
         master_details = db.execute('SELECT * FROM master_details').fetchall()
-        assert len(master_details) == master_detail_count - len(affected_detail_ids)
+        assert len(master_details) == master_detail_count - len(affected_master_detail_ids)
         master_item_detail_relations = db.execute('SELECT * FROM master_item_detail_relations').fetchall()
-        assert len(master_item_detail_relations) == master_item_detail_relation_count - len(affected_relation_ids)
-        masters = db.execute('SELECT * FROM masters').fetchall()
-        assert len(masters) == master_count - 1
-        master_item_relations = db.execute('SELECT * FROM master_item_relations').fetchall()
-        assert len(master_item_relations) == master_item_relation_count - len(affected_item_ids)
-        master_detail_relations = db.execute('SELECT * FROM master_detail_relations').fetchall()
-        assert len(master_detail_relations) == master_detail_relation_count - len(affected_detail_ids)
+        assert len(master_item_detail_relations) == master_item_detail_relation_count - len(affected_master_item_detail_relation_ids)
+        master_lists = db.execute('SELECT * FROM master_lists').fetchall()
+        assert len(master_lists) == master_list_count - 1
+        master_list_item_relations = db.execute('SELECT * FROM master_list_item_relations').fetchall()
+        assert len(master_list_item_relations) == master_list_item_relation_count - len(affected_master_item_ids)
+        master_list_detail_relations = db.execute('SELECT * FROM master_list_detail_relations').fetchall()
+        assert len(master_list_detail_relations) == master_list_detail_relation_count - len(affected_master_detail_ids)
     # redirected to lists.index
-    response = client.post('masters/2/delete')
+    response = client.post('master-lists/2/delete')
     assert response.status_code == 302
-    assert response.headers['Location'] == '/masters/'
+    assert response.headers['Location'] == '/master-lists/'
     # list master must exist
-    response = client.post("masters/8/delete")
+    response = client.post("master-lists/3/delete")
     assert response.status_code == 404
 
 
