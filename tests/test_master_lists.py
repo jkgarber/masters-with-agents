@@ -3,11 +3,15 @@ from incontext.db import get_db
 
 def test_index(client, auth):
     # user must be logged in
-    response = client.get('/masters/')
+    response = client.get('/master-lists/')
     assert response.status_code == 302
     assert response.headers['Location'] == '/auth/login'
+    # user must be admin
+    auth.login('other', 'other')
+    response = client.get("master-lists/")
+    assert response.status_code == 403
     auth.login()
-    response = client.get('/masters/')
+    response = client.get('/master-lists/')
     assert response.status_code == 200
     # test user's list master data gets served
     assert b'master name 1' in response.data

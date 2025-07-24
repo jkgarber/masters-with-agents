@@ -1,0 +1,76 @@
+# Project TODOs
+
+# Progressions
+
+[x] Separate out agent masters from list masters
+	[x] Change list master to master list
+		[x] change list_master to master_list (back end)
+		[x] change List Master to Master List (front end)
+	[x] Change agent master to master agent
+		[x] change agent_master to master_agent (back end)
+		[x] change Agent Master to Master Agent (front end)
+[x] Change vendor to provider
+[x] Improve agent model mechanics
+	[x] Agent model is its own table with name, code, and provider_code and provider_name
+	[x] Insert agent models upon db initialization
+	[x] standard routes with new schema
+		[x] new master agent
+		[x] view master agent
+		[x] edit master agent
+		[x] delete master agent
+	[x] Display model and provider name on the front end instead of codes.
+[x] You can create an agent from an agent master
+	[x] Merge Agents into this project
+		[x] index
+		[x] create agent
+		[x] view agent
+		[x] edit agent
+		[x] delete agent
+	[x] Add option to create from a master agent
+		[x] new tethered agent
+			[x] You can see all values of the master agent when deciding.
+			[x] view tethered agents in the same list as other agents with a special indicator.
+			[x] Only admin can manage master agents
+			[x] Other users can use a master from admin user.
+
+# Tests
+
+[x] Insert data
+[] Define tests
+    [x] data entry incl. agent models
+    [] manage master lists
+        [] index
+        [] create
+        [] view
+        [] edit
+        [] delete
+        [] data validation
+        [] admin only
+    [] manage master agents
+        [] index
+        [] create
+        [] view
+        [] edit
+        [] delete
+        [] data validation
+        [] admin only
+    [] manage agents without affecting other user's data + data validation
+        [] index
+        [] create
+        [] view
+        [] edit
+        [] delete
+        [] data validation
+    [] manage tethered agents without affecting other user's data + data validation
+        [] index
+        [] create
+        [] view
+        [] delete
+        [] data validation
+[] Run tests
+[] Check coverage
+
+## Deployment
+
+[] Deploy
+
