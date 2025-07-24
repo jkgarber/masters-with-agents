@@ -511,30 +511,31 @@ def test_delete_master_item(client, auth, app):
     response = client.post('/masters/1/items/1/delete')
     assert response.status_code == 302
     assert response.headers['Location'] == '/auth/login'
-    # user must have permission
-    auth.login('other', 'other')
-    assert client.post('/masters/1/items/1/delete').status_code == 403
+    # user must be admin
+    auth.login("other", "other")
+    response = client.get("master-lists/1/master-items/delete")
+    assert response.status_code == 403
     auth.login()
     with app.app_context():
         db = get_db()
         master_items_before = db.execute('SELECT id, name FROM master_items').fetchall()
-        contents_before = db.execute('SELECT content FROM master_item_detail_relations').fetchall()
-        relations_before = db.execute('SELECT master_id, master_item_id FROM master_item_relations').fetchall()
-        response = client.post('/masters/1/items/1/delete')
-        master_items_after = db.execute('SELECT id, name FROM master_items').fetchall()
-        contents_after = db.execute('SELECT content FROM master_item_detail_relations').fetchall()
-        relations_after = db.execute('SELECT master_id, master_item_id FROM master_item_relations').fetchall()
-        # only the affected master_item gets deleted
+        master_contents_before = db.execute('SELECT master_content FROM master_item_detail_relations').fetchall()
+        master_relations_before = db.execute('SELECT master_list_id, master_item_id FROM master_list_item_relations').fetchall()
+        response = client.post("/master_lists/1/master-items/1/delete")
+        master_items_after = db.execute("SELECT id, name FROM master_items").fetchall()
+        master_contents_after = db.execute("SELECT master_content FROM master_item_detail_relations").fetchall()
+        master_relations_after = db.execute('SELECT master_list_id, master_item_id FROM master_list_item_relations').fetchall()
+        # only the affected master item gets deleted
         assert master_items_after == master_items_before[1:]
-        # only the affected detail relations get deleted
-        assert contents_after == contents_before[2:]
+        # only the affected master detail relations get deleted
+        assert master_contents_after == master_contents_before[2:]
         # only the affected master relation gets deleted
-        assert relations_after == relations_before[1:]
-    # redirected to master
+        assert master_relations_after == master_relations_before[1:]
+    # redirected to master list
     assert response.status_code == 302
-    assert response.headers['Location'] == '/masters/1/view'
+    assert response.headers["Location"] == "/master-lists/1/view"
     # master item must exist
-    response = client.post('masters/1/items/7/delete')
+    response = client.post("master-lists/1/master-items/4/delete")
     assert response.status_code == 404
 
 
