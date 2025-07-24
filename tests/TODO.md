@@ -26,7 +26,7 @@
         - [x] admin only
     - [ ] master agents
         - [x] index
-        - [ ] create
+        - [x] new
         - [ ] view
         - [ ] edit
         - [ ] delete
@@ -34,14 +34,14 @@
         - [ ] admin only
     - [ ] agents
         - [ ] index
-        - [ ] create
+        - [ ] new
         - [ ] view
         - [ ] edit
         - [ ] delete
         - [ ] data validation
     - [ ] tethered agents
         - [ ] index
-        - [ ] create
+        - [ ] new
         - [ ] view
         - [ ] delete
         - [ ] data validation

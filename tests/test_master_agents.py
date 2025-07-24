@@ -24,7 +24,7 @@ def test_index_master_agent(app, client, auth):
     assert b"master agent description 3" in response.data
 
 
-def test_view_agent_master(app, client, auth):
+def test_view_master_agent(app, client, auth):
     # user must be logged in
     response = client.get('masters/5/view')
     assert response.status_code == 302
@@ -43,6 +43,106 @@ def test_view_agent_master(app, client, auth):
     assert b'Reply with one word: &#34;Working&#34; 1.' in response.data
     # do not need to test that other data does not get served
     # because the template only accepts one of each parameter.
+
+
+def test_new_master_agent(app, client, auth):
+    # user must be logged in
+    response = client.get("/master-agents/new")
+    assert response.status_code == 302
+    assert response.headers["Location"] == "/auth/login"
+    # user must be admin
+    auth.login("other", "other")
+    response = client.get("/master-agents/new")
+    assert response.status_code == 403
+    auth.login()
+    response = client.get("/master-agents/new")
+    assert response.status_code == 200
+    # agent models get served
+    with app.app_context():
+        db = get_db()
+        agent_models = db.execut("SELECT model_name FROM agent_models")
+        for agent_model in agent_models:
+            assert agent_model["model_name"].encode() in response.data
+    # data validation
+	response = client.post(
+        "master-agents/new",
+        data={
+			"name": "",
+			"description": "master agent description 4",
+			"model_id": "1",
+			"role": "master agent role 4",
+            "instructions": "Reply with one word: Working"
+        }
+    )
+    assert b'Name, model, role, and instructions are all required.' in response.data
+    response = client.post(
+        "master-agents/new",
+        data={
+			"name": "master agent name 4",
+			"description": "master agent description 4",
+			"model_id": "",
+			"role": "master agent role 4",
+            "instructions": "Reply with one word: Working"
+        }
+    )
+    assert b'Model, name, role, and instructions are all required.' in response.data
+    # invalid model
+    response = client.post(
+        "master-agents/new",
+        data={
+			"name": "master agent name 4",
+			"description": "master agent description 4",
+			"model_id": "1",
+			"role": "",
+            "instructions": "Reply with one word: Working"
+        }
+    )
+    assert b'Model not recognized as a supported model.' in response.data
+        "master-agents/new",
+        data={
+			"name": "master agent name 4",
+			"description": "master agent description 4",
+			"model_id": "1",
+			"role": "master agent role 4",
+            "instructions": ""
+        }
+    response = client.post(
+    )
+    assert b"Model, name, role, and instructions are all required." in response.data
+    # master agent is saved to database
+    response = client.post(
+        "master-agents/new",
+        data = {
+            "name": "master agent name 4",
+            "description": "master agent description 4",
+            "model_id": "1",
+            "role": "master agent role 4",
+            "instructions": "Reply with one word: Working"
+        }
+    )
+    with app.app_context():
+        db = get_db()
+        masters = db.execute('SELECT * FROM masters WHERE creator_id = 2').fetchall()
+        assert len(masters) == 6
+        assert masters[5]["master_type"] == "agent"
+        assert masters[5]['name'] == 'master name 9'
+        assert masters[5]['description'] == 'master description 9'
+        master_agents = db.execute('SELECT * FROM master_agents WHERE creator_id = 2').fetchall()
+        assert len(master_agents) == 3
+        new_master_agent = master_agents[-1]
+        assert new_master_agent["model"] == "gemini-1.5-pro"
+        assert new_master_agent["role"] == "Testing Agent 9"
+        assert new_master_agent["instructions"] == "Reply with one word: 'Working'. 4"
+        assert new_master_agent["vendor"] == "google"
+        master_agent_relations = db.execute(
+            "SELECT * FROM master_agent_relations"
+            " WHERE master_id = ?",
+            (masters[-1]["id"],)
+        ).fetchone()
+        assert master_agent_relations["master_agent_id"] == new_master_agent["id"]
+    # redirected to master_agents.index
+    assert response.status_code == 302
+    assert response.headers["Location"] == "/master-agents/"
 
 
 def test_edit_agent_master(app, client, auth):
