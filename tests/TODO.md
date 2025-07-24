@@ -18,14 +18,14 @@
         - [x] delete
         - [x] data validation
         - [x] admin only
-    - [ ] master details
+    - [x] master details
         - [x] new
         - [x] edit
         - [x] delete
-        - [ ] data validation
-        - [ ] admin only
+        - [x] data validation
+        - [x] admin only
     - [ ] master agents
-        - [ ] index
+        - [x] index
         - [ ] create
         - [ ] view
         - [ ] edit
