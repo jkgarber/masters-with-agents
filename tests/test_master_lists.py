@@ -57,6 +57,10 @@ def test_view_master_list(app, client, auth):
     response = client.get("master-lists/1/view")
     assert response.status_code == 302
     assert response.headers["Location"] == "/auth/login"
+    # user must be admin
+    auth.login('other', 'other')
+    response = client.get("master-lists/1/view")
+    assert response.status_code == 403
     # user must be master list creator
     auth.login("other", "other")
     assert client.get("master-lists/1/view").status_code == 403
@@ -90,6 +94,10 @@ def test_edit_master_list(app, client, auth):
     response = client.get('/master-lists/1/edit')
     assert response.status_code == 302
     assert response.headers['Location'] == '/auth/login'
+    # user must be admin
+    auth.login('other', 'other')
+    response = client.get("master-lists/1/edit")
+    assert response.status_code == 403
     # user must be master list creator
     auth.login('other', 'other')
     assert client.get('master-lists/1/edit').status_code == 403
@@ -128,6 +136,10 @@ def test_delete_master_list(app, client, auth):
     response = client.post("/master-lists/1/delete")
     assert response.status_code == 302
     assert response.headers["Location"] == "/auth/login"
+    # user must be admin
+    auth.login('other', 'other')
+    response = client.get("master-lists/1/delete")
+    assert response.status_code == 403
     # user must be master creator
     auth.login("other", "other")
     assert client.post("master-lists/1/delete").status_code == 403
@@ -212,35 +224,39 @@ def test_delete_master_list(app, client, auth):
         assert len(master_list_detail_relations) == master_list_detail_relation_count - len(affected_master_detail_ids)
         master_item_detail_relations = db.execute('SELECT * FROM master_item_detail_relations').fetchall()
         assert len(master_item_detail_relations) == master_item_detail_relation_count - len(affected_master_item_detail_relation_ids)
-    # redirected to lists.index
-    response = client.post('master-lists/2/delete')
+    # redirected to master_lists.index
+    response = client.post("master-lists/2/delete")
     assert response.status_code == 302
-    assert response.headers['Location'] == '/master-lists/'
-    # list master must exist
+    assert response.headers["Location"] == "/master-lists/"
+    # master list must exist
     response = client.post("master-lists/3/delete")
     assert response.status_code == 404
 
 
 def test_new_master_item(app, client, auth):
     # user must be logged in
-    response = client.get('/masters/1/items/new')
+    response = client.get("/master-lists/1/master-items/new")
     assert response.status_code == 302
-    assert response.headers['Location'] == '/auth/login'
-    # user must be master creator
+    assert response.headers["Location"] == "/auth/login"
+    # user must be admin
     auth.login('other', 'other')
-    assert client.get('/masters/1/items/new').status_code == 403
+    response = client.get("master-lists/1/master-items/new")
+    assert response.status_code == 403
+    # user must be master list creator
+    auth.login('other', 'other')
+    assert client.get('/master-lists/1/master-items/new').status_code == 403
     auth.login()
-    response = client.get('/masters/1/items/new')
+    response = client.get('/master-lists/1/master-items/new')
     assert response.status_code == 200
-    # master-specific detail names are served
     with app.app_context():
+        # master list related detail names are served
         db = get_db()
         master_details = db.execute(
             'SELECT d.name'
             ' FROM master_details d'
-            ' JOIN master_detail_relations r'
+            ' JOIN master_list_detail_relations r'
             ' ON d.id = r.master_detail_id'
-            ' WHERE r.master_id = 1'
+            ' WHERE r.master_list_id = 1'
         ).fetchall()
         for master_detail in master_details:
             assert master_detail['name'].encode() in response.data
@@ -248,15 +264,15 @@ def test_new_master_item(app, client, auth):
         other_master_details = db.execute(
             'SELECT d.name'
             ' FROM master_details d'
-            ' JOIN master_detail_relations r'
+            ' JOIN master_list_detail_relations r'
             ' ON d.id = r.master_detail_id'
-            ' WHERE r.master_id <> 1'
+            ' WHERE r.master_list_id <> 1'
         ).fetchall()
         for master_detail in other_master_details:
             assert master_detail['name'].encode() not in response.data
-    # data validationa
+    # data validation
     response = client.post(
-        '/masters/1/items/new', data={'name': '', '1': '', '2': ''}
+        '/master-lists/1/master-items/new', data={'name': '', '1': '', '2': ''}
     )
     assert b'Name is required' in response.data
     # new master item is saved to db correctly
@@ -267,24 +283,24 @@ def test_new_master_item(app, client, auth):
         ).fetchall()
         master_details_before = db.execute(
             'SELECT d.id, d.name FROM master_details d'
-            ' JOIN master_detail_relations r'
+            ' JOIN master_list_detail_relations r'
             ' ON r.master_detail_id = d.id'
-            ' WHERE r.master_id = 1'
+            ' WHERE r.master_list_id = 1'
         ).fetchall()
         master_item_detail_relations_before = db.execute(
-            'SELECT id, master_item_id, master_detail_id, content'
+            'SELECT id, master_item_id, master_detail_id, master_content'
             ' FROM master_item_detail_relations'
         ).fetchall()
-        master_item_relations_before = db.execute(
-            'SELECT id, master_id, master_item_id'
-            ' FROM master_item_relations'
+        master_list_item_relations_before = db.execute(
+            'SELECT id, master_list_id, master_item_id'
+            ' FROM master_list_item_relations'
         ).fetchall()
         response = client.post(
-            '/masters/1/items/new',
+            '/master-lists/1/master-items/new',
             data={
-                'name': 'item name 7',
-                '1': 'relation content 11',
-                '2': 'relation content 12',
+                'name': 'master item name 4',
+                '1': 'master relation content 6',
+                '2': 'master relation content 7',
             }
         )
         master_items_after = db.execute(
@@ -292,32 +308,32 @@ def test_new_master_item(app, client, auth):
         ).fetchall()
         master_details_after = db.execute(
             'SELECT d.id, d.name FROM master_details d'
-            ' JOIN master_detail_relations r'
+            ' JOIN master_list_detail_relations r'
             ' ON r.master_detail_id = d.id'
-            ' WHERE r.master_id = 1'
+            ' WHERE r.master_list_id = 1'
         ).fetchall()
         master_item_detail_relations_after = db.execute(
-            'SELECT id, master_item_id, master_detail_id, content'
+            'SELECT id, master_item_id, master_detail_id, master_content'
             ' FROM master_item_detail_relations'
         ).fetchall()
-        master_item_relations_after = db.execute(
-            'SELECT id, master_id, master_item_id'
-            ' FROM master_item_relations'
+        master_list_item_relations_after = db.execute(
+            'SELECT id, master_list_id, master_item_id'
+            ' FROM master_list_item_relations'
         ).fetchall()
         assert master_items_after[:-1] == master_items_before
         assert master_details_after == master_details_before
         assert master_item_detail_relations_after[:-2] == master_item_detail_relations_before
-        assert master_item_relations_after[:-1] == master_item_relations_before
-        assert master_items_after[-1]['name'] == 'item name 7'
+        assert master_list_item_relations_after[:-1] == master_list_item_relations_before
+        assert master_items_after[-1]['name'] == 'master item name 4'
         assert master_item_detail_relations_after[-2]['master_detail_id'] == 1
-        assert master_item_detail_relations_after[-2]['content'] == 'relation content 11'
+        assert master_item_detail_relations_after[-2]['master_content'] == 'master relation content 6'
         assert master_item_detail_relations_after[-1]['master_detail_id'] == 2
-        assert master_item_detail_relations_after[-1]['content'] == 'relation content 12'
-        assert master_item_relations_after[-1]['master_id'] == 1
-        assert master_item_relations_after[-1]['master_item_id'] == len(master_items_after)
-        # redirect to master.view
+        assert master_item_detail_relations_after[-1]['master_content'] == 'master relation content 7'
+        assert master_list_item_relations_after[-1]['master_list_id'] == 1
+        assert master_list_item_relations_after[-1]['master_item_id'] == len(master_items_after)
+        # redirect to master_list.view
         assert response.status_code == 302
-        assert response.headers['Location'] == '/masters/1/view'
+        assert response.headers["Location"] == "/master-lists/1/view"
 
 
 def test_view_master_item(client, auth, app):

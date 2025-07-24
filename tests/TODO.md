@@ -3,15 +3,29 @@
 - [x] Insert data
 - [ ] Define tests
     - [x] data entry incl. agent models
-    - [ ] manage master lists
+    - [x] master lists
         - [x] index
         - [x] new
         - [x] view
         - [x] edit
         - [x] delete
+        - [x] data validation
+        - [x] admin only
+    - [ ] master items 
+        - [x] new
+        - [ ] view
+        - [ ] edit
+        - [ ] delete
         - [ ] data validation
         - [ ] admin only
-    - [ ] manage master agents
+    - [ ] master details
+        - [ ] new
+        - [ ] view
+        - [ ] edit
+        - [ ] delete
+        - [ ] data validation
+        - [ ] admin only
+    - [ ] master agents
         - [ ] index
         - [ ] create
         - [ ] view
@@ -19,14 +33,14 @@
         - [ ] delete
         - [ ] data validation
         - [ ] admin only
-    - [ ] manage agents without affecting other user's data + data validation
+    - [ ] agents
         - [ ] index
         - [ ] create
         - [ ] view
         - [ ] edit
         - [ ] delete
         - [ ] data validation
-    - [ ] manage tethered agents without affecting other user's data + data validation
+    - [ ] tethered agents
         - [ ] index
         - [ ] create
         - [ ] view
