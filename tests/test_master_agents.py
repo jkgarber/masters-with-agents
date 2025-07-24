@@ -24,27 +24,6 @@ def test_index_master_agent(app, client, auth):
     assert b"master agent description 3" in response.data
 
 
-def test_view_master_agent(app, client, auth):
-    # user must be logged in
-    response = client.get('masters/5/view')
-    assert response.status_code == 302
-    assert response.headers['Location'] == '/auth/login'
-    # user must be agent master creator
-    auth.login('other', 'other')
-    assert client.get('masters/5/view').status_code == 403
-    auth.login()
-    response = client.get('/masters/5/view')
-    assert response.status_code == 200
-    # agent master data gets served
-    assert b'master name 5' in response.data
-    assert b'master description 5' in response.data
-    assert b'gpt-4o-mini' in response.data
-    assert b'Testing Agent 1' in response.data
-    assert b'Reply with one word: &#34;Working&#34; 1.' in response.data
-    # do not need to test that other data does not get served
-    # because the template only accepts one of each parameter.
-
-
 def test_new_master_agent(app, client, auth):
     # user must be logged in
     response = client.get("/master-agents/new")
@@ -143,6 +122,29 @@ def test_new_master_agent(app, client, auth):
     # redirected to master_agents.index
     assert response.status_code == 302
     assert response.headers["Location"] == "/master-agents/"
+
+
+def test_view_master_agent(app, client, auth):
+    # user must be logged in
+    response = client.get("master-agents/1/view")
+    assert response.status_code == 302
+    assert response.headers["Location"] == "/auth/login"
+    # user must be admin
+    auth.login("other", "other")
+    response = client.get("master-agents/1/view")
+    assert response.status_code == 403
+    auth.login()
+    response = client.get("master-agents/1/view")
+    assert response.status_code == 200
+    # master agent data gets served
+    assert b"master agent name 1" in response.data
+    assert b"master agent description 1" in response.data
+    assert b"GPT-4.1 nano" in response.data
+    assert b"OpenAI" in response.data
+    assert b"master agent role 1" in response.data
+    assert b"Reply with one word: Working" in response.data
+    # do not need to test that other data does not get served
+    # because the template only accepts one of each parameter.
 
 
 def test_edit_agent_master(app, client, auth):
