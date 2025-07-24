@@ -20,8 +20,7 @@
         - [x] admin only
     - [ ] master details
         - [x] new
-        - [ ] view
-        - [ ] edit
+        - [x] edit
         - [ ] delete
         - [ ] data validation
         - [ ] admin only

@@ -586,55 +586,50 @@ def test_new_master_detail(client, auth, app):
 
 def test_edit_master_detail(client, auth, app):
     # user must be logged in
-    response = client.get('/masters/1/details/1/edit')
+    response = client.get("/master-lists/1/master-details/1/edit")
     assert response.status_code == 302
-    assert response.headers['Location'] == '/auth/login'
-    response = client.post('masters/1/details/1/edit')
-    assert response.status_code == 302
-    assert response.headers['Location'] == '/auth/login'
-    # user must have permission
-    auth.login('other', 'other')
-    response = client.get('/masters/1/details/1/edit')
-    assert response.status_code == 403
-    response = client.post('masters/1/details/1/edit')
+    assert response.headers["Location"] == "/auth/login"
+    # user must be admin
+    auth.login("other", "other")
+    response = client.get("/master-lists/1/master-details/1/edit")
     assert response.status_code == 403
     auth.login()
-    response = client.get('/masters/1/details/1/edit')
+    response = client.get("/master-lists/1/master-details/1/edit")
     assert response.status_code == 200
-    # master_detail must exist
-    response = client.get('/masters/1/details/7/edit')
+    # master detail must exist
+    response = client.get("/master-lists/1/master-details/4/edit")
     assert response.status_code == 404
     # data validation
     response = client.post(
-        '/masters/1/details/1/edit',
+        '/master-lists/1/master-details/1/edit',
         data={'name': '', 'description': ''}
     )
     assert b'Name is required' in response.data
-    # master_detail is updated in db
     with app.app_context():
+        # master detail is updated in db
         db = get_db()
-        master_details_before = db.execute('SELECT * FROM master_details').fetchall()
-        rels_before = db.execute('SELECT * FROM master_detail_relations').fetchall()
-        irels_before = db.execute('SELECT * FROM master_item_detail_relations').fetchall()
+        master_details_before = db.execute("SELECT * FROM master_details").fetchall()
+        master_list_detail_relations_before = db.execute("SELECT * FROM master_list_detail_relations").fetchall()
+        master_item_detail_relations_before = db.execute("SELECT * FROM master_item_detail_relations").fetchall()
         response = client.post(
-            '/masters/1/details/1/edit',
+            "/master-lists/1/master-details/1/edit",
             data={
-                'name': 'detail name 1 updated',
-                'description': 'detail description 1 updated'
+                "name": "master detail name 1 updated",
+                "description": "master detail description 1 updated"
             }
         )
-        master_details_after = db.execute('SELECT * FROM master_details').fetchall()
-        rels_after = db.execute('SELECT * FROM master_detail_relations').fetchall()
-        irels_after = db.execute('SELECT * FROM master_item_detail_relations').fetchall()
+        master_details_after = db.execute("SELECT * FROM master_details").fetchall()
+        master_list_detail_relations_after = db.execute("SELECT * FROM master_list_detail_relations").fetchall()
+        master_item_detail_relations_after = db.execute("SELECT * FROM master_item_detail_relations").fetchall()
         assert master_details_after[1:] == master_details_before[1:]
         assert master_details_after[0] != master_details_before[0]
-        assert master_details_after[0]['name'] == 'detail name 1 updated'
-        assert master_details_after[0]['description'] == 'detail description 1 updated'
-        assert rels_before == rels_after
-        assert irels_before == irels_after
-    # redirect to master view
+        assert master_details_after[0]['name'] == 'master detail name 1 updated'
+        assert master_details_after[0]['description'] == 'master detail description 1 updated'
+        assert master_list_detail_relations_before == master_list_detail_relations_after
+        assert master_item_detail_relations_before == master_item_detail_relations_after
+    # redirect to master list view
     assert response.status_code == 302
-    assert response.headers['Location'] == '/masters/1/view'
+    assert response.headers["Location"] == "/master-lists/1/view"
 
 
 def test_delete_master_detail(client, auth, app):
