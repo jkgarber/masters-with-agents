@@ -176,12 +176,12 @@ def test_delete_master_list(app, client, auth):
         response = client.post('/master-lists/1/delete')
         deleted_master_list = db.execute('SELECT * FROM master-lists WHERE id = 1').fetchone()
         assert deleted_master_list == None
-        deleted_master_item_relations = db.execute(
-            'SELECT * FROM master_item_relations WHERE master_id = 1'
+        deleted_master_list_item_relations = db.execute(
+            'SELECT * FROM master_list_item_relations WHERE master_list_id = 1'
         ).fetchall()
-        assert len(deleted_master_item_relations) == 0
-        deleted_master_detail_relations = db.execute('SELECT * FROM master_detail_relations WHERE master_id = 1').fetchall()
-        assert len(deleted_master_detail_relations) == 0
+        assert len(deleted_master_list_item_relations) == 0
+        deleted_master_list_detail_relations = db.execute('SELECT * FROM master_list_detail_relations WHERE master_list_id = 1').fetchall()
+        assert len(deleted_master_list_detail_relations) == 0
         deleted_master_items = db.execute(
             f'SELECT * FROM master_items WHERE id IN ({placeholders_affected_master_item_ids})',
             affected_master_item_ids
@@ -200,18 +200,18 @@ def test_delete_master_list(app, client, auth):
         ).fetchall()
         assert len(deleted_master_item_detail_relations) == 0
         # other master data does not get deleted
-        master_items = db.execute('SELECT * FROM master_items').fetchall()
-        assert len(master_items) == master_item_count - len(affected_master_item_ids)
-        master_details = db.execute('SELECT * FROM master_details').fetchall()
-        assert len(master_details) == master_detail_count - len(affected_master_detail_ids)
-        master_item_detail_relations = db.execute('SELECT * FROM master_item_detail_relations').fetchall()
-        assert len(master_item_detail_relations) == master_item_detail_relation_count - len(affected_master_item_detail_relation_ids)
         master_lists = db.execute('SELECT * FROM master_lists').fetchall()
         assert len(master_lists) == master_list_count - 1
+        master_items = db.execute('SELECT * FROM master_items').fetchall()
+        assert len(master_items) == master_item_count - len(affected_master_item_ids)
         master_list_item_relations = db.execute('SELECT * FROM master_list_item_relations').fetchall()
         assert len(master_list_item_relations) == master_list_item_relation_count - len(affected_master_item_ids)
+        master_details = db.execute('SELECT * FROM master_details').fetchall()
+        assert len(master_details) == master_detail_count - len(affected_master_detail_ids)
         master_list_detail_relations = db.execute('SELECT * FROM master_list_detail_relations').fetchall()
         assert len(master_list_detail_relations) == master_list_detail_relation_count - len(affected_master_detail_ids)
+        master_item_detail_relations = db.execute('SELECT * FROM master_item_detail_relations').fetchall()
+        assert len(master_item_detail_relations) == master_item_detail_relation_count - len(affected_master_item_detail_relation_ids)
     # redirected to lists.index
     response = client.post('master-lists/2/delete')
     assert response.status_code == 302
