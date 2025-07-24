@@ -634,35 +634,35 @@ def test_edit_master_detail(client, auth, app):
 
 def test_delete_master_detail(client, auth, app):
     # user must be logged in
-    response = client.post('/masters/1/details/1/delete')
+    response = client.post("/master-lists/1/master-details/1/delete")
     assert response.status_code == 302
-    assert response.headers['Location'] == '/auth/login'
-    # user must have permisstion
-    auth.login('other', 'other')
-    response = client.post('/masters/1/details/1/delete')
+    assert response.headers["Location"] == "/auth/login"
+    # user must be admin
+    auth.login("other", "other")
+    response = client.post("/master-lists/1/master-details/1/delete")
     assert response.status_code == 403
     # master detail must exist
     auth.login()
-    response = client.post('/masters/1/details/7/delete')
+    response = client.post("/master-lists/1/master-details/4/delete")
     assert response.status_code == 404
-    # detail and related records get deleted
     with app.app_context():
+        # master detail and master relation records get deleted
         db = get_db()
-        mast_dets_before = db.execute('SELECT * FROM master_details').fetchall()
-        m_i_d_rels_before = db.execute('SELECT * FROM master_item_detail_relations').fetchall()
-        m_d_rels_before = db.execute('SELECT * FROM master_detail_relations').fetchall()
-        response = client.post('/masters/1/details/1/delete')
-        mast_dets_after = db.execute('SELECT * FROM master_details').fetchall()
-        m_i_d_rels_after = db.execute('SELECT * FROM master_item_detail_relations').fetchall()
-        m_d_rels_after = db.execute('SELECT * FROM master_detail_relations').fetchall()
-        assert mast_dets_before[1:] == mast_dets_after
-        assert len(m_i_d_rels_before) == len(m_i_d_rels_after) + 2
-        for rel in m_i_d_rels_after:
-            assert rel['master_detail_id'] != 1
-        assert m_d_rels_before[1:] == m_d_rels_after
+        master_details_before = db.execute("SELECT * FROM master_details").fetchall()
+        master_item_detail_relations_before = db.execute("SELECT * FROM master_item_detail_relations").fetchall()
+        master_list_detail_relations_before = db.execute("SELECT * FROM master_list_detail_relations").fetchall()
+        response = client.post("/master-lists/1/master-details/1/delete")
+        master_details_after = db.execute("SELECT * FROM master_details").fetchall()
+        master_item_detail_relations_after = db.execute("SELECT * FROM master_item_detail_relations").fetchall()
+        master_list_detail_relations_after = db.execute("SELECT * FROM master_list_detail_relations").fetchall()
+        assert master_details_before[1:] == master_details_after
+        assert len(master_item_detail_relations_before) == len(master_item_detail_relations_after) + 2
+        for master_item_detail_relation in master_item_detail_relations_after:
+            assert master_item_detail_relation["master_detail_id"] != 1
+        assert master_list_detail_relations_before[1:] == master_list_detail_relations_after
     # redirect to master view
     assert response.status_code == 302
-    assert response.headers['Location'] == '/masters/1/view'
+    assert response.headers["Location"] == "/master-lists/1/view"
 
 
 def test_view_agent_master(app, client, auth):

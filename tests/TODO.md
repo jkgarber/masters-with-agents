@@ -21,7 +21,7 @@
     - [ ] master details
         - [x] new
         - [x] edit
-        - [ ] delete
+        - [x] delete
         - [ ] data validation
         - [ ] admin only
     - [ ] master agents
