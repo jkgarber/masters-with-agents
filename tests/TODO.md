@@ -11,7 +11,7 @@
         - [x] delete
         - [x] data validation
         - [x] admin only
-    - [ ] master items 
+    - [x] master items 
         - [x] new
         - [x] view
         - [x] edit
@@ -19,7 +19,7 @@
         - [x] data validation
         - [x] admin only
     - [ ] master details
-        - [ ] new
+        - [x] new
         - [ ] view
         - [ ] edit
         - [ ] delete

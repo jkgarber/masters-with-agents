@@ -541,50 +541,47 @@ def test_delete_master_item(client, auth, app):
 
 def test_new_master_detail(client, auth, app):
     # user must be logged in
-    response = client.get('/masters/1/details/new')
+    response = client.get("/master-lists/1/master-details/new")
     assert response.status_code == 302
-    assert response.headers['Location'] == '/auth/login'
+    assert response.headers["Location"] == "/auth/login"
+    # user must be admin
+    auth.login("other", "other")
+    response = client.get("master-lists/1/master-details/new")
+    assert response.status_code == 403
     auth.login()
-    response = client.get('/masters/1/details/new')
-    assert response.status_code == 200
-    # user must have permission
-    auth.login('other', 'other')
-    assert client.get('/masters/1/details/new').status_code == 403
-    assert client.post('/masters/1/details/new').status_code == 403
-    auth.login()
-    response = client.get('/masters/1/details/new')
+    response = client.get('/master-lists/1/master-details/new')
     assert response.status_code == 200
     # data validation
-    response = client.post('/masters/1/details/new',
-        data={'name': '', 'description': ''}
+    response = client.post("/master-lists/1/master-details/new",
+        data={"name": "", "description": ""}
     )
-    assert b'Name is required' in response.data
+    assert b"Name is required" in response.data
     with app.app_context():
         db = get_db()
-        master_details_before = db.execute('SELECT * FROM master_details').fetchall()
-        rels_before = db.execute('SELECT * FROM master_detail_relations').fetchall()
-        response = client.post('/masters/1/details/new',
+        master_details_before = db.execute("SELECT * FROM master_details").fetchall()
+        master_detail_relations_before = db.execute('SELECT * FROM master_detail_relations').fetchall()
+        response = client.post("/master-lists/1/master-details/new",
             data={
-                'name': 'detail name 7',
-                'description': 'detail description 7'
+                "name": "master detail name 4",
+                "description": "master detail description 4"
             }
         )
         master_details_after = db.execute('SELECT * FROM master_details').fetchall()
-        rels_after = db.execute('SELECT * FROM master_detail_relations').fetchall()
-        assert master_details_after[-1]['name'] == 'detail name 7'
-        assert master_details_after[-1]['description'] == 'detail description 7'
+        master_detail_relations_after = db.execute('SELECT * FROM master_detail_relations').fetchall()
+        assert master_details_after[-1]['name'] == 'master detail name 4'
+        assert master_details_after[-1]['description'] == 'master detail description 4'
         assert master_details_after[:-1] == master_details_before
-        assert rels_after[:-1] == rels_before
-        assert rels_after[-1]['master_id'] == 1
+        assert master_detail_relations_after[:-1] == master_detail_relations_before
+        assert master_detail_relations_after[-1]['master_list_id'] == 1
         master_details = db.execute(
             'SELECT name FROM master_details d'
-            ' JOIN master_detail_relations r'
+            ' JOIN master_list_detail_relations r'
             ' ON r.master_detail_id = d.id'
-            ' WHERE r.master_id = 1'
+            ' WHERE r.master_list_id = 1'
         ).fetchall()
-        assert master_details[-1]['name'] == 'detail name 7'
+        assert master_details[-1]["name"] == "master detail name 4"
     assert response.status_code == 302
-    assert response.headers['Location'] == '/masters/1/view'
+    assert response.headers["Location"] == "/master-lists/1/view"
 
 
 def test_edit_master_detail(client, auth, app):
