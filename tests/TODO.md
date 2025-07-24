@@ -16,8 +16,8 @@
         - [x] view
         - [x] edit
         - [x] delete
-        - [ ] data validation
-        - [ ] admin only
+        - [x] data validation
+        - [x] admin only
     - [ ] master details
         - [ ] new
         - [ ] view
