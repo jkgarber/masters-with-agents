@@ -49,6 +49,75 @@ def test_new_master_list(app, client, auth):
         assert len(masters) == 3
         assert masters[2]['name'] == 'master list name 3'
         assert masters[2]['description'] == 'master list description 3'
+    # data validation (agent master)
+    response = client.post(
+        "masters/new/agent",
+        data={"name": "", "description": "master description 9", "model": "gemini-1.5-pro", "role": "Testing Agent", "instructions": "Reply with one word: 'Working'. 4"}
+    )
+    assert b'Model, name, role, and instructions are all required.' in response.data
+    response = client.post(
+        "masters/new/agent",
+        data={"name": "master name 9", "description": "master description 9", "model": "", "role": "Testing Agent", "instructions": "Reply with one word: 'Working'. 4"}
+    )
+    assert b'Model, name, role, and instructions are all required.' in response.data
+    # invalid model
+    response = client.post(
+        "masters/new/agent",
+        data={"name": "master name 9", "description": "master description 9", "model": "blah", "role": "Testing Agent", "instructions": "Reply with one word: 'Working'. 4"}
+    )
+    assert b'Model not recognized as a supported model.' in response.data
+    response = client.post(
+        "masters/new/agent",
+        data={"name": "master name 9", "description": "master description 9", "model": "gemini-1.5-pro", "role": "", "instructions": "Reply with one word: 'Working'. 4"}
+    )
+    assert b'Model, name, role, and instructions are all required.' in response.data
+    response = client.post(
+        "masters/new/agent",
+        data={"name": "master name 9", "description": "master description 9", "model": "gemini-1.5-pro", "role": "Testing Agent", "instructions": ""}
+    )
+    assert b'Model, name, role, and instructions are all required.' in response.data
+    # agent master is saved to database
+    response = client.post(
+        'masters/new/agent',
+        data = {'name': 'master name 9', 'description': 'master description 9', "model": "gemini-1.5-pro", "role": "Testing Agent 9", "instructions": "Reply with one word: 'Working'. 4"},
+    )
+    with app.app_context():
+        db = get_db()
+        masters = db.execute('SELECT * FROM masters WHERE creator_id = 2').fetchall()
+        assert len(masters) == 6
+        assert masters[5]["master_type"] == "agent"
+        assert masters[5]['name'] == 'master name 9'
+        assert masters[5]['description'] == 'master description 9'
+        master_agents = db.execute('SELECT * FROM master_agents WHERE creator_id = 2').fetchall()
+        assert len(master_agents) == 3
+        new_master_agent = master_agents[-1]
+        assert new_master_agent["model"] == "gemini-1.5-pro"
+        assert new_master_agent["role"] == "Testing Agent 9"
+        assert new_master_agent["instructions"] == "Reply with one word: 'Working'. 4"
+        assert new_master_agent["vendor"] == "google"
+        master_agent_relations = db.execute(
+            "SELECT * FROM master_agent_relations"
+            " WHERE master_id = ?",
+            (masters[-1]["id"],)
+        ).fetchone()
+        assert master_agent_relations["master_agent_id"] == new_master_agent["id"]
+    # redirected to masters.index
+    assert response.status_code == 302
+    assert response.headers['Location'] == '/masters/'
+    # must be a valid master type
+    assert client.get("/masters/new/blah").status_code == 404
+    assert client.post("/masters/new/blah").status_code == 404
+    # test other model providers
+    response = client.post( # openai
+        'masters/new/agent',
+        data = {'name': 'master name 10', 'description': 'master description 10', "model": "gpt-4.1-mini", "role": "Testing Agent 10", "instructions": "Reply with one word: 'Working'. 10"},
+    )
+    assert response.status_code == 302
+    response = client.post( # anthropic
+        'masters/new/agent',
+        data = {'name': 'master name 10', 'description': 'master description 10', "model": "claude-3-5-haiku-latest", "role": "Testing Agent 10", "instructions": "Reply with one word: 'Working'. 10"},
+    )
+    assert response.status_code == 302
 
 
 def test_view_list_master(app, client, auth):

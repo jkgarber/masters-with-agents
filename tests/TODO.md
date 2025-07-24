@@ -1,0 +1,37 @@
+# TODOs - Testing
+
+- [x] Insert data
+- [ ] Define tests
+    - [x] data entry incl. agent models
+    - [ ] manage master lists
+        - [x] index
+        - [x] new
+        - [ ] view
+        - [ ] edit
+        - [ ] delete
+        - [ ] data validation
+        - [ ] admin only
+    - [ ] manage master agents
+        - [ ] index
+        - [ ] create
+        - [ ] view
+        - [ ] edit
+        - [ ] delete
+        - [ ] data validation
+        - [ ] admin only
+    - [ ] manage agents without affecting other user's data + data validation
+        - [ ] index
+        - [ ] create
+        - [ ] view
+        - [ ] edit
+        - [ ] delete
+        - [ ] data validation
+    - [ ] manage tethered agents without affecting other user's data + data validation
+        - [ ] index
+        - [ ] create
+        - [ ] view
+        - [ ] delete
+        - [ ] data validation
+- [ ] Run tests
+- [ ] Check coverage
+
