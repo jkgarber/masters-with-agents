@@ -13,7 +13,7 @@
         - [x] admin only
     - [ ] master items 
         - [x] new
-        - [ ] view
+        - [x] view
         - [ ] edit
         - [ ] delete
         - [ ] data validation

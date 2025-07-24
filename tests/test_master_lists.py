@@ -338,34 +338,38 @@ def test_new_master_item(app, client, auth):
 
 def test_view_master_item(client, auth, app):
     # user must be logged in
-    response = client.get('/masters/1/items/1/view')
+    response = client.get("/master-lists/1/master-items/1/view")
     assert response.status_code == 302
-    assert response.headers['Location'] == '/auth/login'
-    # user must be master owner
-    auth.login('other', 'other')
-    assert client.get('/masters/1/items/1/view').status_code == 403
+    assert response.headers["Location"] == "/auth/login"
+    # user must be admin
+    auth.login("other", "other")
+    response = client.get("master-lists/1/master-items/view")
+    assert response.status_code == 403
+    # user must be master list owner
+    auth.login("other", "other")
+    assert client.get("/master-lists/1/master-items/1/view").status_code == 403
     auth.login()
-    response = client.get('/masters/1/items/1/view')
+    response = client.get("/master-lists/1/master-items/1/view")
     assert response.status_code == 200
-    # master item data gets served
     with app.app_context():
+        # master item data gets served
         db = get_db()
         master_item = db.execute(
             'SELECT id, name'
             ' FROM master_items'
             ' WHERE id = 1'
         ).fetchone()
-        contents = db.execute(
-            'SELECT r.content, d.name AS master_detail_name'
+        master_contents = db.execute(
+            'SELECT r.master_content, d.name AS master_detail_name'
             ' FROM master_item_detail_relations r'
             ' JOIN master_details d ON r.master_detail_id = d.id'
             ' WHERE r.master_item_id = 1'
         ).fetchall()
         assert str(master_item['id']).encode() in response.data
         assert master_item['name'].encode() in response.data
-        for content in contents:
-            assert content['content'].encode() in response.data
-            assert content['master_detail_name'].encode() in response.data
+        for master_content in master_contents:
+            assert master_content['master_content'].encode() in response.data
+            assert master_content['master_detail_name'].encode() in response.data
         # other master item data does not get served
         other_master_items = db.execute(
             'SELECT id, name'
@@ -374,24 +378,24 @@ def test_view_master_item(client, auth, app):
         ).fetchall()
         for other_master_item in other_master_items:
             assert other_master_item['name'].encode() not in response.data
-        other_contents = db.execute(
-            'SELECT r.content'
+        other_master_contents = db.execute(
+            'SELECT r.master_content'
             ' FROM master_item_detail_relations r'
             ' WHERE r.master_item_id <> 1'
         ).fetchall()
-        for other_content in other_contents:
-            assert other_content['content'].encode() not in response.data
+        for other_master_content in other_master_contents:
+            assert other_master_content['master_content'].encode() not in response.data
         other_master_details = db.execute(
             'SELECT d.name'
             ' FROM master_details d'
-            ' JOIN master_detail_relations r'
+            ' JOIN master_list_detail_relations r'
             ' ON r.master_detail_id = d.id'
-            ' WHERE r.master_id <> 1'
+            ' WHERE r.master_list_id <> 1'
         ).fetchall()
         for other_master_detail in other_master_details:
             assert other_master_detail['name'].encode() not in response.data
     # master item must exist
-    assert client.get('masters/1/items/7/view').status_code == 404
+    assert client.get('master-lists/1/master-items/4/view').status_code == 404
 
 
 def test_edit_master_item(client, auth, app):
