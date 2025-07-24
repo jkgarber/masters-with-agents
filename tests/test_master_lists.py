@@ -400,21 +400,22 @@ def test_view_master_item(client, auth, app):
 
 def test_edit_master_item(client, auth, app):
     # user must be logged in
-    response = client.get('masters/1/items/1/edit')
+    response = client.get("master-lists/1/master-items/1/edit")
     assert response.status_code == 302
-    assert response.headers['Location'] == '/auth/login'
-    # user must have access to item
-    auth.login('other', 'other')
-    assert client.get('masters/1/items/1/edit').status_code == 403
+    assert response.headers["Location"] == "/auth/login"
+    # user must be admin
+    auth.login("other", "other")
+    response = client.get("master-lists/1/master-items/view")
+    assert response.status_code == 403
     auth.login()
-    response = client.get('masters/1/items/1/edit')
+    response = client.get('master-lists/1/master-items/1/edit')
     assert response.status_code == 200
-    # item data gets served
     with app.app_context():
+        # item data gets served
         db = get_db()
-        master = db.execute(
+        master_list = db.execute(
             'SELECT name, description'
-            ' FROM masters'
+            ' FROM master_lists'
             ' WHERE id = 1'
         ).fetchone()
         master_item = db.execute(
@@ -422,28 +423,28 @@ def test_edit_master_item(client, auth, app):
             ' FROM master_items'
             ' WHERE id = 1'
         ).fetchone()
-        contents = db.execute(
-            'SELECT r.content, d.name AS master_detail_name'
+        master_contents = db.execute(
+            'SELECT r.master_content, d.name AS master_detail_name'
             ' FROM master_item_detail_relations r'
             ' JOIN master_details d ON r.master_detail_id = d.id'
             ' WHERE r.master_item_id = 1'
         ).fetchall()
-        assert master['name'].encode() in response.data
-        assert master['description'].encode() in response.data
+        assert master_list['name'].encode() in response.data
+        assert master_list['description'].encode() in response.data
         assert str(master_item['id']).encode() in response.data
         assert master_item['name'].encode() in response.data
-        for content in contents:
-            assert content['content'].encode() in response.data
-            assert content['master_detail_name'].encode() in response.data
+        for master_content in master_contents:
+            assert master_content['master_content'].encode() in response.data
+            assert master_content['master_detail_name'].encode() in response.data
         # other master item data does not get served
-        other_masters = db.execute(
+        other_master_lists = db.execute(
             'SELECT name, description'
-            ' FROM masters'
+            ' FROM master_lists'
             ' WHERE id <> 1'
         ).fetchall()
-        for other_master in other_masters:
-            assert other_master['name'].encode() not in response.data
-            assert other_master['description'].encode() not in response.data
+        for other_master_list in other_master_lists:
+            assert other_master_list['name'].encode() not in response.data
+            assert other_master_list['description'].encode() not in response.data
         other_master_items = db.execute(
             'SELECT id, name'
             ' FROM master_items'
@@ -451,25 +452,25 @@ def test_edit_master_item(client, auth, app):
         ).fetchall()
         for other_master_item in other_master_items:
             assert other_master_item['name'].encode() not in response.data
-        other_contents = db.execute(
-            'SELECT r.content'
+        other_master_contents = db.execute(
+            'SELECT r.master_content'
             ' FROM master_item_detail_relations r'
             ' WHERE r.master_item_id <> 1'
         ).fetchall()
-        for other_content in other_contents:
-            assert other_content['content'].encode() not in response.data
+        for other_master_content in master_other_contents:
+            assert other_master_content['master_content'].encode() not in response.data
         other_master_details = db.execute(
             'SELECT d.name'
             ' FROM master_details d'
-            ' JOIN master_detail_relations r'
+            ' JOIN master_list_detail_relations r'
             ' ON r.master_detail_id = d.id'
-            ' WHERE r.master_id <> 1'
+            ' WHERE r.master_list_id <> 1'
         ).fetchall()
         for other_master_detail in other_master_details:
             assert other_master_detail['name'].encode() not in response.data
     # data validation
     response = client.post(
-        'masters/1/items/1/edit',
+        'master-lists/1/master-items/1/edit',
         data={
             'name': '',
             '1': '',
@@ -477,32 +478,32 @@ def test_edit_master_item(client, auth, app):
         }
     )
     assert b'Name is required' in response.data
-    # changes are saved to database
     with app.app_context():
+        # changes are saved to database
         db = get_db()
         master_items_before = db.execute('SELECT name FROM master_items').fetchall()
-        relations_before = db.execute('SELECT content FROM master_item_detail_relations').fetchall()
+        master_relations_before = db.execute('SELECT master_content FROM master_item_detail_relations').fetchall()
         response = client.post(
-            'masters/1/items/1/edit',
+            'master-lists/1/master-items/1/edit',
             data={
-                'name': 'item name 1 updated',
-                '1': 'relation content 1 updated',
-                '2': 'relation content 2 updated'
+                'name': 'master item name 1 updated',
+                '1': 'master relation content 1 updated',
+                '2': 'master relation content 2 updated'
             }
         )
         master_items_after = db.execute('SELECT name FROM master_items').fetchall()
-        relations_after = db.execute('SELECT content FROM master_item_detail_relations').fetchall()
-        assert master_items_after[0]['name'] == 'item name 1 updated'
-        assert relations_after[0]['content'] == 'relation content 1 updated'
-        assert relations_after[1]['content'] == 'relation content 2 updated'
-        # other items and relations are unchanged
+        relations_after = db.execute('SELECT master_content FROM master_item_detail_relations').fetchall()
+        assert master_items_after[0]['name'] == 'master_item name 1 updated'
+        assert master_relations_after[0]['master_content'] == 'master relation content 1 updated'
+        assert master_relations_after[1]['master_content'] == 'master relation content 2 updated'
+        # other master items and master relations are unchanged
         assert master_items_after[1:] == master_items_before[1:]
-        assert relations_after[2:] == relations_before[2:]
-    # redirected to lists.view
+        assert master_relations_after[2:] == master_relations_before[2:]
+    # redirected to master_lists.view
     assert response.status_code == 302
-    assert response.headers['Location'] == '/masters/1/view'
-    # item must exist
-    assert client.get('masters/1/items/7/edit').status_code == 404
+    assert response.headers["Location"] == "/master-lists/1/view"
+    # master item must exist
+    assert client.get("master-lists/1/master-items/4/edit").status_code == 404
 
 
 def test_delete_master_item(client, auth, app):
