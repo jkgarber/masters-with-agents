@@ -33,7 +33,7 @@
 			- [x] Only admin can manage master agents
 			- [x] Other users can use a master from admin user.
 
-## Tests
+## Testing
 
 - [x] Insert data
 - [ ] Define tests
