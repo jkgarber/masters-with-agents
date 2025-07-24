@@ -1,6 +1,6 @@
 # Project TODOs
 
-# Progressions
+## General 
 
 - [x] Separate out agent masters from list masters
 	- [x] Change list master to master list
@@ -33,7 +33,7 @@
 			- [x] Only admin can manage master agents
 			- [x] Other users can use a master from admin user.
 
-# Tests
+## Tests
 
 - [x] Insert data
 - [ ] Define tests
