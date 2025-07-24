@@ -85,42 +85,42 @@ def test_view_master_list(app, client, auth):
     assert client.get("master-lists/4/view").status_code == 404
 
 
-def test_edit_list_master(app, client, auth):
+def test_edit_master_list(app, client, auth):
     # user must be logged in
-    response = client.get('/masters/1/edit')
+    response = client.get('/master-lists/1/edit')
     assert response.status_code == 302
     assert response.headers['Location'] == '/auth/login'
-    # user must be master creator
+    # user must be master list creator
     auth.login('other', 'other')
-    assert client.get('masters/1/edit').status_code == 403
+    assert client.get('master-lists/1/edit').status_code == 403
     auth.login()
-    response = client.get('masters/1/edit')
+    response = client.get('master-lists/1/edit')
     assert response.status_code == 200
     # master data gets served
-    assert b'master name 1' in response.data
-    assert b'master description 1' in response.data
+    assert b'master list name 1' in response.data
+    assert b'master list description 1' in response.data
     # data validation
-    response = client.post('masters/1/edit', data={'name': '', 'description': ''})
+    response = client.post('master-lists/1/edit', data={'name': '', 'description': ''})
     assert b'Name is required' in response.data
     # changes are saved to database
     response = client.post(
-        'masters/1/edit',
-        data={'name': 'master name 1 updated', 'description': 'master description 1 updated'}
+        'master-lists/1/edit',
+        data={'name': 'master list name 1 updated', 'description': 'master list description 1 updated'}
     )
     with app.app_context():
         db = get_db()
-        masters = db.execute('SELECT name, description FROM masters').fetchall()
-        assert masters[0]['name'] == 'master name 1 updated'
-        assert masters[0]['description'] == 'master description 1 updated'
-        # other masters are not changed
-        for master in masters[1:]:
-            assert master['name'] != 'master name 1 updated'
-            assert master['description'] != 'master description 1 updated'
-    # redirected to masters.index
+        master_lists = db.execute('SELECT name, description FROM master_lists').fetchall()
+        assert master_lists[0]['name'] == 'master list name 1 updated'
+        assert master_lists[0]['description'] == 'master list description 1 updated'
+        # other master lists are not changed
+        for master_list in master_lists[1:]:
+            assert master_list['name'] != 'master list name 1 updated'
+            assert master_list['description'] != 'master list description 1 updated'
+    # redirected to master_lists.index
     assert response.status_code == 302
-    assert response.headers['Location'] == '/masters/'
+    assert response.headers["Location"] == '/master-lists/'
     # master must exist
-    assert client.get('/masters/8/edit').status_code == 404
+    assert client.get('/master-lists/3/edit').status_code == 404
 
 
 def test_delete_list_master(app, client, auth):
