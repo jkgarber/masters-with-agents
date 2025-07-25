@@ -47,9 +47,8 @@ def new():
 
 @bp.route('/<int:master_agent_id>/view')
 @login_required
-@admin_only
 def view(master_agent_id):
-    master_agent = get_master_agent(master_agent_id)
+    master_agent = get_master_agent(master_agent_id, check_access=False)
     return render_template('master-agents/view.html', master_agent=master_agent)
 
 

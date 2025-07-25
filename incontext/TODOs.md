@@ -30,4 +30,6 @@
 			- [x] view tethered agents in the same list as other agents with a special indicator.
 			- [x] Only admin can manage master agents
 			- [x] Other users can use a master from admin user.
+        - [ ] view tethered agent (shows related master agent)
+        - [ ] delete tethered agent
 
