@@ -3,13 +3,14 @@ from flask import (
 )
 from werkzeug.exceptions import abort
 
-from incontext.auth import login_required
+from incontext.auth import login_required, admin_only
 from incontext.db import get_db
 
 bp = Blueprint('master_lists', __name__, url_prefix='/master-lists')
 
 @bp.route('/')
 @login_required
+@admin_only
 def index():
     master_lists = get_master_lists()
     return render_template('master-lists/index.html', master_lists=master_lists)
@@ -17,6 +18,7 @@ def index():
 
 @bp.route('/new', methods=('GET', 'POST'))
 @login_required
+@admin_only
 def new():
     if request.method == 'POST':
         name = request.form['name']
@@ -47,6 +49,7 @@ def view(master_list_id):
 
 @bp.route('/<int:master_list_id>/edit', methods=('GET', 'POST'))
 @login_required
+@admin_only
 def edit(master_list_id):
     master_list = get_master_list(master_list_id)
     if request.method == "POST":
@@ -71,6 +74,7 @@ def edit(master_list_id):
 
 @bp.route("<int:master_list_id>/delete", methods=("POST",))
 @login_required
+@admin_only
 def delete(master_list_id):
     master_list = get_master_list(master_list_id)
     db = get_db()
@@ -107,6 +111,7 @@ def delete(master_list_id):
 
 @bp.route('<int:master_list_id>/master-items/new', methods=("GET", "POST"))
 @login_required
+@admin_only
 def new_master_item(master_list_id):
     master_list = get_master_list(master_list_id)
     if request.method == "POST":
@@ -164,6 +169,7 @@ def view_master_item(master_list_id, master_item_id):
 
 @bp.route("<int:master_list_id>/master-items/<int:master_item_id>/edit", methods=("GET", "POST"))
 @login_required
+@admin_only
 def edit_master_item(master_list_id, master_item_id):
     master_list = get_master_list(master_list_id)
     requested_master_item = next((master_item for master_item in master_list["master_items"] if master_item["id"] == master_item_id), None)
@@ -203,6 +209,7 @@ def edit_master_item(master_list_id, master_item_id):
 
 @bp.route("<int:master_list_id>/master-items/<int:master_item_id>/delete", methods=("POST",))
 @login_required
+@admin_only
 def delete_master_item(master_list_id, master_item_id):
     master_list = get_master_list(master_list_id)
     requested_master_item = next((master_item for master_item in master_list["master_items"] if master_item["id"] == master_item_id), None)
@@ -223,6 +230,7 @@ def delete_master_item(master_list_id, master_item_id):
 
 @bp.route("/<int:master_list_id>/master-details/new", methods=("GET", "POST"))
 @login_required
+@admin_only
 def new_master_detail(master_list_id):
     master_list = get_master_list(master_list_id)
     if request.method == "POST":
@@ -261,6 +269,7 @@ def new_master_detail(master_list_id):
 
 @bp.route("/<int:master_list_id>/master-details/<int:master_detail_id>/edit", methods=("GET", "POST"))
 @login_required
+@admin_only
 def edit_master_detail(master_list_id, master_detail_id):
     master_list = get_master_list(master_list_id)
     requested_master_detail = next((master_detail for master_detail in master_list["master_details"] if master_detail["id"] == master_detail_id), None)
@@ -288,6 +297,7 @@ def edit_master_detail(master_list_id, master_detail_id):
 
 @bp.route('/<int:master_list_id>/master-details/<int:master_detail_id>/delete', methods=('POST',))
 @login_required
+@admin_only
 def delete_master_detail(master_list_id, master_detail_id):
     master_list = get_master_list(master_list_id)
     requested_master_detail = next((master_detail for master_detail in master_list["master_details"] if master_detail["id"] == master_detail_id), None)

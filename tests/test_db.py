@@ -33,22 +33,26 @@ def test_init_db_command(runner, monkeypatch):
 def test_data_entry(app):
     with app.app_context():
         db = get_db()
-        master_item_count = db.execute('SELECT COUNT(id) AS count FROM master_items').fetchone()['count']
-        assert master_item_count == 6
-        master_detail_count = db.execute('SELECT COUNT(id) AS count FROM master_details').fetchone()['count']
-        assert master_detail_count == 6
-        midr_count = db.execute('SELECT COUNT(id) AS count FROM master_item_detail_relations').fetchone()['count']
-        assert midr_count == 10
-        master_count = db.execute('SELECT COUNT(id) AS count FROM masters').fetchone()['count']
-        assert master_count == 7
-        mir_count = db.execute('SELECT COUNT(id) AS count FROM master_item_relations').fetchone()['count']
-        assert mir_count == 6
-        mdr_count = db.execute('SELECT COUNT(id) AS count FROM master_detail_relations').fetchone()['count']
-        assert mdr_count == 6
-        master_agent_count = db.execute("SELECT COUNT(id) AS count FROM master_agents").fetchone()["count"]
+        user_count = db.execute("SELECT COUNT(*) AS count FROM users").fetchone()["count"]
+        assert user_count == 3
+        master_list_count = db.execute("SELECT COUNT(*) AS count FROM master_lists").fetchone()["count"]
+        assert master_list_count == 2
+        master_item_count = db.execute('SELECT COUNT(*) AS count FROM master_items').fetchone()['count']
+        assert master_item_count == 3
+        master_detail_count = db.execute('SELECT COUNT(*) AS count FROM master_details').fetchone()['count']
+        assert master_detail_count == 3
+        master_item_detail_relation_count = db.execute('SELECT COUNT(*) AS count FROM master_item_detail_relations').fetchone()['count']
+        assert master_item_detail_relation_count == 5
+        master_list_item_relation_count = db.execute('SELECT COUNT(*) AS count FROM master_list_item_relations').fetchone()['count']
+        assert master_list_item_relation_count == 3
+        master_list_detail_relation_count = db.execute('SELECT COUNT(*) AS count FROM master_list_detail_relations').fetchone()['count']
+        assert master_list_detail_relation_count == 3
+        master_agent_count = db.execute("SELECT COUNT(*) AS count FROM master_agents").fetchone()["count"]
         assert master_agent_count == 3
-        mar_count = db.execute("SELECT COUNT(id) AS count FROM master_agent_relations").fetchone()["count"]
-        assert mar_count == 3
+        agent_count = db.execute("SELECT COUNT(*) AS count FROM agents").fetchone()["count"]
+        assert agent_count == 3
+        tethered_agent_count = db.execute("SELECT COUNT(*) AS count FROM tethered_agents").fetchone()["count"]
+        assert tethered_agent_count == 3
 
 
 def test_admin_login(client, auth):

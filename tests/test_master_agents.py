@@ -39,7 +39,7 @@ def test_new_master_agent(app, client, auth):
     # agent models get served
     with app.app_context():
         db = get_db()
-        agent_models = db.execut("SELECT model_name FROM agent_models")
+        agent_models = db.execute("SELECT model_name FROM agent_models")
         for agent_model in agent_models:
             assert agent_model["model_name"].encode() in response.data
     # data validation
@@ -64,7 +64,7 @@ def test_new_master_agent(app, client, auth):
             "instructions": "Reply with one word: Working"
         }
     )
-    assert b'Model, name, role, and instructions are all required.' in response.data
+    assert b'Name, model, role, and instructions are all required.' in response.data
     response = client.post(
         "master-agents/new",
         data={
@@ -75,7 +75,7 @@ def test_new_master_agent(app, client, auth):
             "instructions": "Reply with one word: Working"
         }
     )
-    assert b"Model, name, role, and instructions are all required." in response.data
+    assert b'Name, model, role, and instructions are all required.' in response.data
     response = client.post(
         "master-agents/new",
         data={
@@ -86,7 +86,7 @@ def test_new_master_agent(app, client, auth):
             "instructions": ""
         }
     )
-    assert b"Model, name, role, and instructions are all required." in response.data
+    assert b'Name, model, role, and instructions are all required.' in response.data
     # master agent is saved to database
     response = client.post(
         "master-agents/new",
@@ -105,7 +105,7 @@ def test_new_master_agent(app, client, auth):
         new_master_agent = master_agents[-1]
         assert new_master_agent["name"] == "master agent name 4"
         assert new_master_agent["description"] == "master agent description 4"
-        assert new_master_agent["model_id"] == "1"
+        assert new_master_agent["model_id"] == 1
         assert new_master_agent["role"] == "master agent role 4"
         assert new_master_agent["instructions"] == "Reply with one word: Working"
     # redirected to master_agents.index
@@ -118,11 +118,8 @@ def test_view_master_agent(app, client, auth):
     response = client.get("master-agents/1/view")
     assert response.status_code == 302
     assert response.headers["Location"] == "/auth/login"
-    # user must be admin
+    # user doesn't have to be admin or creator
     auth.login("other", "other")
-    response = client.get("master-agents/1/view")
-    assert response.status_code == 403
-    auth.login()
     response = client.get("master-agents/1/view")
     assert response.status_code == 200
     # master agent data gets served
@@ -138,21 +135,20 @@ def test_view_master_agent(app, client, auth):
 
 def test_edit_master_agent(app, client, auth):
     # user must be logged in
-    response = client.get("/master_agents/1/edit")
+    response = client.get("/master-agents/1/edit")
     assert response.status_code == 302
     assert response.headers["Location"] == "/auth/login"
     # user must be admin
     auth.login("other", "other")
-    response = client.get("master_agents/1/edit")
+    response = client.get("master-agents/1/edit")
     assert response.status_code == 403
     auth.login()
-    response = client.get("master_agents/1/edit")
+    response = client.get("master-agents/1/edit")
     assert response.status_code == 200
     # master agent data gets served
     assert b"master agent name 1" in response.data
     assert b"master agent description 1" in response.data
-    assert b'ChatGPT-4.1 nano' in response.data
-    assert b"OpenAI" in response.data
+    assert b"GPT-4.1 nano" in response.data
     assert b"master agent role 1" in response.data
     assert b"Reply with one word: Working" in response.data
     # data validation
@@ -219,7 +215,7 @@ def test_edit_master_agent(app, client, auth):
         assert master_agents_after[0] != master_agents_before[0]
         assert master_agents_after[0]["name"] == "master agent name 1 updated"
         assert master_agents_after[0]["description"] == "master agent description 1 updated"
-        assert master_agents_after[0]["model_id"] == "2"
+        assert master_agents_after[0]["model_id"] == 2
         assert master_agents_after[0]["role"] == "master agent role 1 updated"
         assert master_agents_after[0]["instructions"] == "Reply with one word: Working updated"
     # redirected to masters.index

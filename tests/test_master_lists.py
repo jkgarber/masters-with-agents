@@ -8,7 +8,7 @@ def test_index(client, auth):
     assert response.status_code == 302
     assert response.headers['Location'] == '/auth/login'
     # user must be admin
-    auth.login('other', 'other')
+    auth.login("other", "other")
     response = client.get("master-lists/")
     assert response.status_code == 403
     auth.login()
@@ -47,9 +47,9 @@ def test_new_master_list(app, client, auth):
     with app.app_context():
         db = get_db()
         master_lists = db.execute('SELECT name, description FROM master_lists WHERE creator_id = 2').fetchall()
-        assert len(masters) == 3
-        assert masters[2]['name'] == 'master list name 3'
-        assert masters[2]['description'] == 'master list description 3'
+        assert len(master_lists) == 3
+        assert master_lists[2]['name'] == 'master list name 3'
+        assert master_lists[2]['description'] == 'master list description 3'
 
 
 def test_view_master_list(app, client, auth):
@@ -138,7 +138,7 @@ def test_delete_master_list(app, client, auth):
     assert response.headers["Location"] == "/auth/login"
     # user must be admin
     auth.login('other', 'other')
-    response = client.get("master-lists/1/delete")
+    response = client.post("master-lists/1/delete")
     assert response.status_code == 403
     # user must be master creator
     auth.login("other", "other")
@@ -168,7 +168,7 @@ def test_delete_master_list(app, client, auth):
         affected_master_item_ids = db.execute(
             'SELECT master_item_id FROM master_list_item_relations WHERE master_list_id = 1'
         ).fetchall()
-        assert len(affected_item_ids) == 2
+        assert len(affected_master_item_ids) == 2
         affected_master_item_ids = [master_item_id['master_item_id'] for master_item_id in affected_master_item_ids]
         placeholders_affected_master_item_ids = f'{"?, " * len(affected_master_item_ids)}'[:-2]
         affected_master_detail_ids = db.execute(
@@ -186,7 +186,7 @@ def test_delete_master_list(app, client, auth):
         ).fetchall()
         assert len(affected_master_item_detail_relation_ids) == 4
         response = client.post('/master-lists/1/delete')
-        deleted_master_list = db.execute('SELECT * FROM master-lists WHERE id = 1').fetchone()
+        deleted_master_list = db.execute('SELECT * FROM master_lists WHERE id = 1').fetchone()
         assert deleted_master_list == None
         deleted_master_list_item_relations = db.execute(
             'SELECT * FROM master_list_item_relations WHERE master_list_id = 1'
@@ -343,7 +343,7 @@ def test_view_master_item(client, auth, app):
     assert response.headers["Location"] == "/auth/login"
     # user must be admin
     auth.login("other", "other")
-    response = client.get("master-lists/1/master-items/view")
+    response = client.get("/master-lists/1/master-items/1/view")
     assert response.status_code == 403
     # user must be master list owner
     auth.login("other", "other")
@@ -405,7 +405,7 @@ def test_edit_master_item(client, auth, app):
     assert response.headers["Location"] == "/auth/login"
     # user must be admin
     auth.login("other", "other")
-    response = client.get("master-lists/1/master-items/view")
+    response = client.get("master-lists/1/master-items/1/view")
     assert response.status_code == 403
     auth.login()
     response = client.get('master-lists/1/master-items/1/edit')
@@ -457,7 +457,7 @@ def test_edit_master_item(client, auth, app):
             ' FROM master_item_detail_relations r'
             ' WHERE r.master_item_id <> 1'
         ).fetchall()
-        for other_master_content in master_other_contents:
+        for other_master_content in other_master_contents:
             assert other_master_content['master_content'].encode() not in response.data
         other_master_details = db.execute(
             'SELECT d.name'
@@ -492,8 +492,8 @@ def test_edit_master_item(client, auth, app):
             }
         )
         master_items_after = db.execute('SELECT name FROM master_items').fetchall()
-        relations_after = db.execute('SELECT master_content FROM master_item_detail_relations').fetchall()
-        assert master_items_after[0]['name'] == 'master_item name 1 updated'
+        master_relations_after = db.execute('SELECT master_content FROM master_item_detail_relations').fetchall()
+        assert master_items_after[0]['name'] == 'master item name 1 updated'
         assert master_relations_after[0]['master_content'] == 'master relation content 1 updated'
         assert master_relations_after[1]['master_content'] == 'master relation content 2 updated'
         # other master items and master relations are unchanged
@@ -508,12 +508,12 @@ def test_edit_master_item(client, auth, app):
 
 def test_delete_master_item(client, auth, app):
     # user must be logged in
-    response = client.post('/masters/1/items/1/delete')
+    response = client.post('/master-lists/1/master-items/1/delete')
     assert response.status_code == 302
     assert response.headers['Location'] == '/auth/login'
     # user must be admin
     auth.login("other", "other")
-    response = client.get("master-lists/1/master-items/delete")
+    response = client.post("master-lists/1/master-items/1/delete")
     assert response.status_code == 403
     auth.login()
     with app.app_context():
@@ -521,7 +521,7 @@ def test_delete_master_item(client, auth, app):
         master_items_before = db.execute('SELECT id, name FROM master_items').fetchall()
         master_contents_before = db.execute('SELECT master_content FROM master_item_detail_relations').fetchall()
         master_relations_before = db.execute('SELECT master_list_id, master_item_id FROM master_list_item_relations').fetchall()
-        response = client.post("/master_lists/1/master-items/1/delete")
+        response = client.post("/master-lists/1/master-items/1/delete")
         master_items_after = db.execute("SELECT id, name FROM master_items").fetchall()
         master_contents_after = db.execute("SELECT master_content FROM master_item_detail_relations").fetchall()
         master_relations_after = db.execute('SELECT master_list_id, master_item_id FROM master_list_item_relations').fetchall()
@@ -559,7 +559,7 @@ def test_new_master_detail(client, auth, app):
     with app.app_context():
         db = get_db()
         master_details_before = db.execute("SELECT * FROM master_details").fetchall()
-        master_detail_relations_before = db.execute('SELECT * FROM master_detail_relations').fetchall()
+        master_list_detail_relations_before = db.execute('SELECT * FROM master_list_detail_relations').fetchall()
         response = client.post("/master-lists/1/master-details/new",
             data={
                 "name": "master detail name 4",
@@ -567,12 +567,12 @@ def test_new_master_detail(client, auth, app):
             }
         )
         master_details_after = db.execute('SELECT * FROM master_details').fetchall()
-        master_detail_relations_after = db.execute('SELECT * FROM master_detail_relations').fetchall()
+        master_list_detail_relations_after = db.execute('SELECT * FROM master_list_detail_relations').fetchall()
         assert master_details_after[-1]['name'] == 'master detail name 4'
         assert master_details_after[-1]['description'] == 'master detail description 4'
         assert master_details_after[:-1] == master_details_before
-        assert master_detail_relations_after[:-1] == master_detail_relations_before
-        assert master_detail_relations_after[-1]['master_list_id'] == 1
+        assert master_list_detail_relations_after[:-1] == master_list_detail_relations_before
+        assert master_list_detail_relations_after[-1]['master_list_id'] == 1
         master_details = db.execute(
             'SELECT name FROM master_details d'
             ' JOIN master_list_detail_relations r'

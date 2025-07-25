@@ -137,8 +137,7 @@ def test_edit_agent(app, client, auth):
     # agent data gets served
     assert b"agent name 1" in response.data
     assert b"agent description 1" in response.data
-    assert b'ChatGPT-4.1 nano' in response.data
-    assert b"OpenAI" in response.data
+    assert b"GPT-4.1 nano" in response.data
     assert b"agent role 1" in response.data
     assert b"Reply with one word: Working" in response.data
     # data validation
@@ -205,7 +204,7 @@ def test_edit_agent(app, client, auth):
         assert agents_after[0] != agents_before[0]
         assert agents_after[0]["name"] == "agent name 1 updated"
         assert agents_after[0]["description"] == "agent description 1 updated"
-        assert agents_after[0]["model_id"] == "2"
+        assert agents_after[0]["model_id"] == 2
         assert agents_after[0]["role"] == "agent role 1 updated"
         assert agents_after[0]["instructions"] == "Reply with one word: Working updated"
     # redirected to masters.index

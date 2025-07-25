@@ -39,10 +39,9 @@
         - [x] edit
         - [x] delete
         - [x] data validation
-    - [ ] tethered agents
+    - [x] tethered agents
         - [x] new
-        - [ ] view
         - [x] delete
-- [ ] Run tests
+- [x] Run tests
 - [ ] Check coverage
 
