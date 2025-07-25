@@ -229,31 +229,22 @@ def test_edit_master_agent(app, client, auth):
 
 def test_delete_master_agent(client, auth, app):
     # user must be logged in
-    response = client.post("/masters/5/delete")
+    response = client.post("/master-agents/1/delete")
     assert response.status_code == 302
     assert response.headers["Location"] == "/auth/login"
-    # user must have permission
-    auth.login('other', 'other')
-    response = client.post("masters/5/delete")
+    # user must be admin
+    auth.login("other", "other")
+    response = client.post("master-agents/1/delete")
     assert response.status_code == 403
-    # agent master gets deleted and others are unaffected.
     auth.login()
     with app.app_context():
+        # master agent gets deleted
         db = get_db()
-        masters_before = db.execute("SELECT * FROM masters").fetchall()
         master_agents_before = db.execute("SELECT * FROM master_agents").fetchall()
-        master_agent_relations_before = db.execute("SELECT * FROM master_agent_relations").fetchall()
-        response = client.post("masters/5/delete")
-        masters_after = db.execute('SELECT * FROM masters').fetchall()
+        response = client.post("master-agents/1/delete")
         master_agents_after = db.execute("SELECT * FROM master_agents").fetchall()
-        master_agent_relations_after = db.execute("SELECT * FROM master_agent_relations").fetchall()
-        assert masters_after[:4] == masters_before[:4]
-        assert masters_after[4:] == masters_before[5:]
-        assert len(masters_after) == len(masters_before) - 1
         assert master_agents_after ==  master_agents_before[1:]
         assert len(master_agents_after) == len(master_agents_before) - 1
-        assert master_agent_relations_after == master_agent_relations_before[1:]
-        assert len(master_agent_relations_after) == len(master_agent_relations_before) - 1
     # redirected to lists.index
     assert response.status_code == 302
-    assert response.headers["Location"] == "/masters/"
+    assert response.headers["Location"] == "/master-agents/"

@@ -24,14 +24,14 @@
         - [x] delete
         - [x] data validation
         - [x] admin only
-    - [ ] master agents
+    - [x] master agents
         - [x] index
         - [x] new
         - [x] view
         - [x] edit
-        - [ ] delete
-        - [ ] data validation
-        - [ ] admin only
+        - [x] delete
+        - [x] data validation
+        - [x] admin only
     - [ ] agents
         - [ ] index
         - [ ] new
