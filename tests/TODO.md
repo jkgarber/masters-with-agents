@@ -36,7 +36,7 @@
         - [x] index
         - [x] new
         - [x] view
-        - [ ] edit
+        - [x] edit
         - [ ] delete
         - [ ] data validation
     - [ ] tethered agents
