@@ -39,7 +39,7 @@ def test_new(app, client, auth):
             "instructions": "Reply with one word: Working"
         }
     )
-    assert b'Name, model, role, and instructions are all required.' in response.data
+    assert b"Name, model, role, and instructions are all required." in response.data
     response = client.post(
         "master-agents/new",
         data={
@@ -99,97 +99,25 @@ def test_new(app, client, auth):
     assert response.headers["Location"] == "/agents/"
 
 
-@pytest.mark.parametrize('path', (
-    'agents/create',
-    'agents/1/update',
-    'agents/1/delete',
-))
-def test_login_required(client, path):
-    response = client.post(path)
-    assert response.headers['Location'] == '/auth/login'
-
-
-def test_creator_required(app, client, auth):
-    # change the agent creator to another user
-    with app.app_context():
-        db = get_db()
-        db.execute('UPDATE agents SET creator_id = 3 WHERE id = 1')
-        db.commit()
-
+def test_view_agent(app, client, auth):
+    # user must be logged in
+    response = client.get("agents/1/view")
+    assert response.status_code == 302
+    assert response.headers["Location"] == "/auth/login"
+    # user must be agent creator
+    auth.login("other", "other")
+    response = client.get("agents/1/view")
+    assert response.status_code == 403
     auth.login()
-    # current user can't modify another user's context
-    assert client.post('agents/1/update').status_code == 403
-    assert client.post('agents/1/delete').status_code == 403
-    # current user doesn't see Edit link
-    assert b'href="/agents/1/update"' not in client.get('/agents').data
-
-
-@pytest.mark.parametrize('path', (
-    'agents/2/update',
-    'agents/2/delete',
-))
-def test_exists_required(client, auth, path):
-    auth.login()
-    assert client.post(path).status_code == 404
-
-
-def test_create(client, auth, app):
-    auth.login()
-    assert client.get('agents/create').status_code == 200
-
-    response = client.post('agents/create', data={'model': 'llm', 'name': 'created', 'role': 'talker', 'instructions': 'have a conversation'})
-
-    with app.app_context():
-        db = get_db()
-        count = db.execute('SELECT COUNT(id) FROM agents').fetchone()[0]
-        assert count == 2
-    
-
-def test_update(client, auth, app):
-    auth.login()
-    assert client.get('agents/1/update').status_code == 200
-    
-    client.post('/agents/1/update', data={'model': 'llm2', 'name': 'updated', 'role': 'senior talker', 'instructions': 'have a better conversation'})
-
-    with app.app_context():
-        db = get_db()
-        agent = db.execute('SELECT * FROM agents WHERE id = 1').fetchone()
-        assert agent['model'] == 'llm2'
-        assert agent['name'] == 'updated'
-        assert agent['role'] == 'senior talker'
-        assert agent['instructions'] == 'have a better conversation'
-
-
-@pytest.mark.parametrize('path', (
-    '/agents/create',
-    '/agents/1/update',
-))
-def test_create_update_validate(client, auth, path):
-    auth.login()
-    response = client.post(path, data={'model': '', 'name': '', 'role': '', 'instructions': ''})
-    assert b'Model, name, role, and instructions are all required.' in response.data
-
-    response = client.post(path, data={'model': 'llm', 'name': '', 'role': '', 'instructions': ''})
-    assert b'Model, name, role, and instructions are all required.' in response.data
-
-    response = client.post(path, data={'model': 'llm', 'name': 'test', 'role': '', 'instructions': ''})
-    assert b'Model, name, role, and instructions are all required.' in response.data
-
-    response = client.post(path, data={'model': 'llm', 'name': 'test', 'role': 'test', 'instructions': ''})
-    assert b'Model, name, role, and instructions are all required.' in response.data
-
-    response = client.post(path, data={'model': '', 'name': 'test', 'role': 'test', 'instructions': 'test'})
-    assert b'Model, name, role, and instructions are all required.' in response.data
-
-
-def test_delete(client, auth, app): # the delete view should should redirect to the index url and the agent should no longer exist in the db.
-    auth.login()
-    response = client.post('/agents/1/delete')
-    assert response.headers['Location'] == '/agents/'
-
-    with app.app_context():
-        db = get_db()
-        agent = db.execute('SELECT * FROM agents WHERE id = 1').fetchone()
-        assert agent is None
-
+    response = client.get("agents/1/view")
+    assert response.status_code == 200
+    # agent data gets served
+    assert b"agent name 1" in response.data
+    assert b"agent description 1" in response.data
+    assert b"GPT-4.1 nano" in response.data
+    assert b"OpenAI" in response.data
+    assert b"agent role 1" in response.data
+    assert b"Reply with one word: Working" in response.data
+    # do not need to test that other data does not get served
+    # because the template only accepts one of each parameter.
 

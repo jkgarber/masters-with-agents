@@ -35,7 +35,7 @@
     - [ ] agents
         - [x] index
         - [x] new
-        - [ ] view
+        - [x] view
         - [ ] edit
         - [ ] delete
         - [ ] data validation
