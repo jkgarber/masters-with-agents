@@ -23,11 +23,14 @@
 {% if agents|length > 0 %}
 <hr>
 {% endif %}
-{% for master_agent in master_agents %}
+{% for tethered_agent in tethered_agents %}
 <article>
-	<h3>{{ master_agent['name'] }} (tethered)</h3>
-	<p>{{ master_agent['description'] }}</p>
-	<p><b>Created: </b>{{ master_agent['created'].strftime('%d.%m.%Y') }} | <a href="{{ url_for('master_agents.view', master_agent_id=master_agent['id']) }}">View Master</a> | <a href="{{ url_for('master_agents.edit', master_agent_id=master_agent['id']) }}">Edit Master</a></p>
+	<h3>{{ tethered_agent['name'] }} (tethered)</h3>
+	<p>{{ tethered_agent['description'] }}</p>
+    <p><b>Created: </b>{{ tethered_agent['created'].strftime('%d.%m.%Y') }} | <a href="{{ url_for('master_agents.view', master_agent_id=tethered_agent['master_agent_id']) }}">View Master</a></p>
+    <form method="post" action="{{ url_for('agents.delete_tethered', tethered_agent_id=tethered_agent['id']) }}">
+        <input type="submit" value="Delete">
+    </form>
 	{% if not loop.last %}
 	<hr>
 	{% endif %}

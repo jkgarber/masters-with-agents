@@ -14,8 +14,8 @@ bp = Blueprint('agents', __name__, url_prefix='/agents')
 @bp.route('/')
 @login_required
 def index():
-    agents, master_agents = get_agents()
-    return render_template('agents/index.html', agents=agents, master_agents=master_agents)
+    agents, tethered_agents = get_agents()
+    return render_template('agents/index.html', agents=agents, tethered_agents=tethered_agents)
 
 
 @bp.route('/new', methods=('GET', 'POST'))
@@ -110,24 +110,33 @@ def delete(agent_id):
     return redirect(url_for('agents.index'))
 
 
+@bp.route("<int:tethered_agent_id>/delete-tethered", methods=("POST",))
+@login_required
+def delete_tethered(tethered_agent_id):
+    tethered_agent = get_tethered_agent(tethered_agent_id)
+    db = get_db()
+    db.execute("DELETE FROM tethered_agents WHERE id = ?", (tethered_agent_id,))
+    db.commit()
+    return redirect(url_for('agents.index'))
+
+
 def get_agents():
     db = get_db()
     agents = db.execute(
         'SELECT a.id, a.creator_id, a.created, a.name, a.description, a.model_id, a.role, a.instructions, u.username'
         ' FROM agents a JOIN users u ON a.creator_id = u.id'
-    ).fetchall()
-    master_agents = db.execute(
-        "SELECT m.id, m.creator_id, m.created, m.name, m.description, m.model_id, m.role, m.instructions, u.username"
-        " FROM master_agents m"
-        " JOIN users u ON u.id = m.creator_id"
-        " WHERE m.id IN ("
-        "  SELECT master_agent_id"
-        "  FROM tethered_agents"
-        "  WHERE creator_id = ?"
-        " )",
+        " WHERE creator_id = ?",
         (g.user["id"],)
     ).fetchall()
-    return agents, master_agents
+    tethered_agents = db.execute(
+        "SELECT ta.id, ma.name, ma.description, ta.created, ma.id as master_agent_id"
+        " FROM master_agents ma"
+        " JOIN tethered_agents ta"
+        " ON ma.id = ta.master_agent_id"
+        " WHERE ta.creator_id = ?",
+        (g.user["id"],)
+    )
+    return agents, tethered_agents
 
 
 def get_agent(agent_id, check_access=True):
@@ -146,3 +155,19 @@ def get_agent(agent_id, check_access=True):
         if agent['creator_id'] != g.user['id']:
             abort(403)
     return agent
+
+
+def get_tethered_agent(tethered_agent_id, check_access=True):
+    db = get_db()
+    tethered_agent = db.execute(
+        'SELECT ta.creator_id'
+        ' FROM tethered_agents ta'
+        ' WHERE ta.id = ?',
+        (tethered_agent_id,)
+    ).fetchone()
+    if tethered_agent is None:
+        abort(404)
+    if check_access:
+        if tethered_agent['creator_id'] != g.user['id']:
+            abort(403)
+    return tethered_agent
