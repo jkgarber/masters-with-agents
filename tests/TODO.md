@@ -33,7 +33,7 @@
         - [x] data validation
         - [x] admin only
     - [ ] agents
-        - [ ] index
+        - [x] index
         - [ ] new
         - [ ] view
         - [ ] edit

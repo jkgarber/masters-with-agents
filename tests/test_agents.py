@@ -3,20 +3,21 @@ from incontext.db import get_db
 
 
 def test_index(client, auth):
-    response = client.get('/agents/') # when not logged in each page shows links to log in or register. 
-    assert b'Log In' in response.data
-    assert b'Register' in response.data
-
+    # user must be logged in
+    response = client.get("/agents/")
+    assert response.status_code == 302
+    assert response.headers["Location"] == "/auth/login"
     auth.login()
-    response = client.get('/agents/') # the index view should display information about the agent that was added with the test data.
-    assert b'Log Out' in response.data # when logged in there's a ling to log out.
-    assert b'test model' in response.data
-    assert b'test name' in response.data
-    assert b'test role' in response.data
-    assert b'Created: 01.01.2025' in response.data
-    assert b'Creator: test' in response.data
-    assert b'test\ninstructions' in response.data
-    assert b'href="/agents/1/update"' in response.data
+    response = client.get("/agents/")
+    assert response.status_code == 200
+    # user's agent data gets served
+    assert b"agent name 1" in response.data
+    assert b"agent description 1" in response.data
+    assert b"agent name 2" in response.data
+    assert b"agent description 2" in response.data
+    # other user's agent data not served
+    assert b"agent name 3" not in response.data
+    assert b"agent description 3" not in response.data
 
 
 @pytest.mark.parametrize('path', (
@@ -91,7 +92,7 @@ def test_create_update_validate(client, auth, path):
 
     response = client.post(path, data={'model': 'llm', 'name': '', 'role': '', 'instructions': ''})
     assert b'Model, name, role, and instructions are all required.' in response.data
-    
+
     response = client.post(path, data={'model': 'llm', 'name': 'test', 'role': '', 'instructions': ''})
     assert b'Model, name, role, and instructions are all required.' in response.data
 
