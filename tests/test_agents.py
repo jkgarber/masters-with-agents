@@ -20,6 +20,85 @@ def test_index(client, auth):
     assert b"agent description 3" not in response.data
 
 
+def test_new(app, client, auth):
+    # user must be logged in
+    response = client.get("/agents/new")
+    assert response.status_code == 302
+    assert response.headers["Location"] == "/auth/login"
+    auth.login()
+    response = client.get("/agents/new")
+    assert response.status_code == 200
+    # data validation
+    response = client.post(
+        "agents/new",
+        data={
+			"name": "",
+			"description": "agent description 4",
+			"model_id": "1",
+			"role": "agent role 4",
+            "instructions": "Reply with one word: Working"
+        }
+    )
+    assert b'Name, model, role, and instructions are all required.' in response.data
+    response = client.post(
+        "master-agents/new",
+        data={
+			"name": "agent name 4",
+			"description": "agent description 4",
+			"model_id": "",
+			"role": "agent role 4",
+            "instructions": "Reply with one word: Working"
+        }
+    )
+    assert b'Model, name, role, and instructions are all required.' in response.data
+    response = client.post(
+        "master-agents/new",
+        data={
+			"name": "agent name 4",
+			"description": "agent description 4",
+			"model_id": "1",
+			"role": "",
+            "instructions": "Reply with one word: Working"
+        }
+    )
+    assert b"Model, name, role, and instructions are all required." in response.data
+    response = client.post(
+        "master-agents/new",
+        data={
+			"name": "agent name 4",
+			"description": "agent description 4",
+			"model_id": "1",
+			"role": "agent role 4",
+            "instructions": ""
+        }
+    )
+    assert b"Model, name, role, and instructions are all required." in response.data
+    # agent is saved to database
+    response = client.post(
+        "/agents/new",
+        data = {
+            "name": "agent name 4",
+            "description": "agent description 4",
+            "model_id": "1",
+            "role": "agent role 4",
+            "instructions": "Reply with one word: Working"
+        }
+    )
+    with app.app_context():
+        db = get_db()
+        agents = db.execute("SELECT * FROM agents WHERE creator_id = 2").fetchall()
+        assert len(agents) == 4
+        new_agent = agents[-1]
+        assert new_agent["name"] == "agent name 4"
+        assert new_agent["description"] == "agent description 4"
+        assert new_agent["model_id"] == "1"
+        assert new_agent["role"] == "agent role 4"
+        assert new_agent["instructions"] == "Reply with one word: Working"
+    # redirected to agents.index
+    assert response.status_code == 302
+    assert response.headers["Location"] == "/agents/"
+
+
 @pytest.mark.parametrize('path', (
     'agents/create',
     'agents/1/update',

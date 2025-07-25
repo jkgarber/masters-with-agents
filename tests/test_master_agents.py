@@ -101,7 +101,7 @@ def test_new_master_agent(app, client, auth):
     with app.app_context():
         db = get_db()
         master_agents = db.execute("SELECT * FROM master_agents WHERE creator_id = 2").fetchall()
-        assert len(masters) == 4
+        assert len(master_agents) == 4
         new_master_agent = master_agents[-1]
         assert new_master_agent["name"] == "master agent name 4"
         assert new_master_agent["description"] == "master agent description 4"

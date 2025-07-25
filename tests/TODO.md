@@ -34,7 +34,7 @@
         - [x] admin only
     - [ ] agents
         - [x] index
-        - [ ] new
+        - [x] new
         - [ ] view
         - [ ] edit
         - [ ] delete
