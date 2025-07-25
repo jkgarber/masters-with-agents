@@ -26,7 +26,12 @@ def new():
         error = None
         name = request.form['name']
         description = request.form["description"]
-        model_id = int(request.form['model_id'])
+        model_id = request.form['model_id']
+        if model_id:
+            try:
+                model_id = int(model_id)
+            except:
+                model_id = None
         model = next((agent_model for agent_model in agent_models if agent_model["id"] == model_id), None)
         role = request.form['role']
         instructions = request.form['instructions']
