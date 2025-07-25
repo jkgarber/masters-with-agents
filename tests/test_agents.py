@@ -213,3 +213,24 @@ def test_edit_agent(app, client, auth):
     assert response.headers['Location'] == '/agents/'
 
 
+def test_delete_agent(client, auth, app):
+    # user must be logged in
+    response = client.post("/agents/1/delete")
+    assert response.status_code == 302
+    assert response.headers["Location"] == "/auth/login"
+    # user must be agent creator
+    auth.login("other", "other")
+    response = client.post("agents/1/delete")
+    assert response.status_code == 403
+    auth.login()
+    with app.app_context():
+        # agent gets deleted
+        db = get_db()
+        agents_before = db.execute("SELECT * FROM agents").fetchall()
+        response = client.post("agents/1/delete")
+        agents_after = db.execute("SELECT * FROM agents").fetchall()
+        assert agents_after ==  agents_before[1:]
+        assert len(agents_after) == len(agents_before) - 1
+    # redirected to lists.index
+    assert response.status_code == 302
+    assert response.headers["Location"] == "/agents/"

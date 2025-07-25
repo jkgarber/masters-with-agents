@@ -32,13 +32,13 @@
         - [x] delete
         - [x] data validation
         - [x] admin only
-    - [ ] agents
+    - [x] agents
         - [x] index
         - [x] new
         - [x] view
         - [x] edit
-        - [ ] delete
-        - [ ] data validation
+        - [x] delete
+        - [x] data validation
     - [ ] tethered agents
         - [ ] index
         - [ ] new
