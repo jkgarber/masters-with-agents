@@ -43,5 +43,5 @@
         - [x] new
         - [x] delete
 - [x] Run tests
-- [ ] Check coverage
+- [x] Check coverage
 
