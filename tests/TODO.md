@@ -1,7 +1,7 @@
 # TODOs - Testing
 
 - [x] Insert data
-- [ ] Define tests
+- [x] Define tests
     - [x] data entry incl. agent models
     - [x] master lists
         - [x] index
